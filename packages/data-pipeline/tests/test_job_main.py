@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from data_pipeline.jobs.__main__ import _build_store, _required_env
+from data_pipeline.jobs.__main__ import _build_store, _provider_endpoint_path, _required_env
 from data_pipeline.jobs.postgres_store import PostgresFacilityStore
 from data_pipeline.jobs.store import JsonlFacilityStore
 
@@ -28,3 +28,12 @@ def test_build_store_uses_postgres_when_configured(monkeypatch) -> None:
     monkeypatch.setenv("DATABASE_URL", "postgresql://example")
     store = _build_store("postgres")
     assert isinstance(store, PostgresFacilityStore)
+
+
+def test_provider_endpoint_path_returns_seoul_default_path() -> None:
+    assert _provider_endpoint_path("seoul_open_data") == "/facilities"
+
+
+def test_provider_endpoint_path_raises_for_unsupported_provider() -> None:
+    with pytest.raises(RuntimeError):
+        _provider_endpoint_path("unknown_provider")

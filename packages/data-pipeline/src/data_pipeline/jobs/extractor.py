@@ -25,6 +25,7 @@ class ProviderFacilityExtractor(Extractor[dict]):
         page_size: int = 200,
         start_page: int = 1,
         end_page: int = 1,
+        endpoint_path: str = "/facilities",
         timeout_seconds: float = 5.0,
         client_factory: Callable[[], httpx.AsyncClient] | None = None,
     ) -> None:
@@ -32,6 +33,7 @@ class ProviderFacilityExtractor(Extractor[dict]):
         self._page_size = page_size
         self._start_page = start_page
         self._end_page = end_page
+        self._endpoint_path = endpoint_path
         self._timeout_seconds = timeout_seconds
         self._client_factory = client_factory
 
@@ -46,7 +48,7 @@ class ProviderFacilityExtractor(Extractor[dict]):
 
     async def _fetch_page(self, client: httpx.AsyncClient, page: int) -> list[dict]:
         response = await client.get(
-            f"{self._base_url}/facilities",
+            f"{self._base_url}{self._endpoint_path}",
             params={"page": page, "page_size": self._page_size},
         )
         response.raise_for_status()

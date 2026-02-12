@@ -12,6 +12,12 @@ from data_pipeline.jobs.publishing_store import PublishingFacilityStore
 from data_pipeline.jobs.store import JsonlFacilityStore
 from data_pipeline.messaging.kafka_broker import KafkaMessageBroker
 
+_PROVIDER_ENDPOINT_PATHS: dict[str, str] = {
+    "seoul_open_data": "/facilities",
+    "gyeonggi_open_data": "/gyeonggi/facilities",
+    "national_open_data": "/national/facilities",
+}
+
 
 def _required_env(name: str) -> str:
     value = os.getenv(name)
@@ -46,8 +52,17 @@ def _maybe_build_event_broker() -> KafkaMessageBroker | None:
     return KafkaMessageBroker(bootstrap_servers=bootstrap)
 
 
+def _provider_endpoint_path(provider: str) -> str:
+    endpoint = _PROVIDER_ENDPOINT_PATHS.get(provider)
+    if endpoint:
+        return endpoint
+    supported = ", ".join(sorted(_PROVIDER_ENDPOINT_PATHS.keys()))
+    raise RuntimeError(f"unsupported PIPELINE_PROVIDER_NAME '{provider}', supported: {supported}")
+
+
 def main() -> None:
     base_url = _required_env("FACILITY_PROVIDER_BASE_URL")
+    provider = os.getenv("PIPELINE_PROVIDER_NAME", "seoul_open_data")
     backend = os.getenv("PIPELINE_STORE_BACKEND", "jsonl").lower()
     page_size = int(os.getenv("PIPELINE_PAGE_SIZE", "200"))
     start_page = int(os.getenv("PIPELINE_START_PAGE", "1"))
@@ -55,6 +70,7 @@ def main() -> None:
 
     extractor = ProviderFacilityExtractor(
         base_url=base_url,
+        endpoint_path=_provider_endpoint_path(provider),
         page_size=page_size,
         start_page=start_page,
         end_page=end_page,
@@ -64,7 +80,6 @@ def main() -> None:
     event_broker = _maybe_build_event_broker()
     saved_count = asyncio.run(run_daily_sync(extractor=extractor, store=store))
     if event_broker:
-        provider = os.getenv("PIPELINE_PROVIDER_NAME", "seoul_open_data")
         asyncio.run(
             publish_etl_completed_event(
                 broker=event_broker,

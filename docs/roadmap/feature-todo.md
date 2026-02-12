@@ -5,7 +5,6 @@ This file tracks functional development status.
 ## In Progress
 
 1. `geo-engine`: route-risk scoring model and PostGIS integration adapter
-2. `data-pipeline`: provider expansion (Gyeonggi/National adapters)
 
 ## Todo
 
@@ -25,3 +24,4 @@ This file tracks functional development status.
 9. `trust-safety` safe-number routing adapter (050 relay)
 10. `apps/api` trust-safety API endpoint for safe-number routing
 11. `apps/api` geo-engine API endpoints (`distance`, `geofence`, `golden-time`) with cache integration
+12. `data-pipeline` provider expansion (`Gyeonggi/National` adapters, provider routing path)
