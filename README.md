@@ -81,5 +81,6 @@
 
 - API server: `./scripts/run-api.sh`
 - Data pipeline monitoring: `./scripts/run-data-pipeline-monitoring.sh`
+- Data pipeline one-shot job: `./scripts/run-data-pipeline-job.sh`
 - Test execution: `./scripts/run-tests.sh`
 - Operations runbook: `docs/operations/runtime-runbook.md`

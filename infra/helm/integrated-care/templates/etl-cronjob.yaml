@@ -1,0 +1,42 @@
+{{- if .Values.etlCronJob.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "integrated-care.fullname" . }}-etl
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "integrated-care.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.etlCronJob.schedule | quote }}
+  concurrencyPolicy: {{ .Values.etlCronJob.concurrencyPolicy }}
+  successfulJobsHistoryLimit: {{ .Values.etlCronJob.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.etlCronJob.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/instance: {{ .Release.Name }}
+            app: etl-cronjob
+        spec:
+          restartPolicy: OnFailure
+          {{- if .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml .Values.imagePullSecrets | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: etl
+              image: "{{ .Values.etlCronJob.image.repository }}:{{ .Values.etlCronJob.image.tag }}"
+              imagePullPolicy: {{ .Values.etlCronJob.image.pullPolicy }}
+              command: ["python", "-m", "data_pipeline.jobs"]
+              envFrom:
+                - configMapRef:
+                    name: {{ include "integrated-care.fullname" . }}-config
+                {{- if .Values.secret.create }}
+                - secretRef:
+                    name: {{ include "integrated-care.fullname" . }}-secret
+                {{- end }}
+              resources:
+                {{- toYaml .Values.etlCronJob.resources | nindent 16 }}
+{{- end }}
+

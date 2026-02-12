@@ -43,6 +43,14 @@ Override:
 PIPELINE_MONITORING_HOST=0.0.0.0 PIPELINE_MONITORING_PORT=8011 ./scripts/run-data-pipeline-monitoring.sh
 ```
 
+## Run Data Pipeline Job (One-shot)
+
+```bash
+FACILITY_PROVIDER_BASE_URL=https://provider.example.com \
+PIPELINE_START_PAGE=1 PIPELINE_END_PAGE=1 \
+./scripts/run-data-pipeline-job.sh
+```
+
 ## Run Tests
 
 ```bash

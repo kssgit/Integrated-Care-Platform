@@ -6,6 +6,7 @@ Deploy:
 
 1. API service
 2. Data pipeline monitoring service
+3. ETL CronJob worker
 
 and optionally pull open-source platform dependencies through Helm dependency management.
 
@@ -39,6 +40,17 @@ helm dependency update infra/helm/integrated-care
 helm upgrade --install integrated-care infra/helm/integrated-care \
   --namespace integrated-care --create-namespace
 ```
+
+## ETL CronJob
+
+The chart deploys an ETL CronJob by default (`etlCronJob.enabled=true`).
+
+Key values:
+
+1. `etlCronJob.schedule`
+2. `config.PIPELINE_START_PAGE`
+3. `config.PIPELINE_END_PAGE`
+4. `config.PIPELINE_OUTPUT_FILE`
 
 ## AKS Example
 

@@ -10,6 +10,10 @@ config:
   API_PORT: "8000"
   PIPELINE_MONITORING_HOST: "0.0.0.0"
   PIPELINE_MONITORING_PORT: "8001"
+  PIPELINE_OUTPUT_FILE: "runtime/facilities.jsonl"
+  PIPELINE_PAGE_SIZE: "200"
+  PIPELINE_START_PAGE: "1"
+  PIPELINE_END_PAGE: "1"
 
 secret:
   create: true
@@ -59,6 +63,24 @@ pipelineMonitoring:
       cpu: "500m"
       memory: "512Mi"
 
+etlCronJob:
+  enabled: true
+  schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  image:
+    repository: ghcr.io/example/integrated-care-pipeline
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "150m"
+      memory: "256Mi"
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+
 serviceMonitor:
   enabled: true
   interval: 15s
@@ -85,4 +107,3 @@ dependencies:
     enabled: false
   airflow:
     enabled: false
-

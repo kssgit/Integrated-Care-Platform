@@ -23,6 +23,13 @@ pipelineMonitoring:
   service:
     type: ClusterIP
 
+etlCronJob:
+  enabled: true
+  schedule: "0 */6 * * *"
+  image:
+    repository: myacr.azurecr.io/integrated-care-pipeline
+    tag: latest
+
 ingress:
   enabled: true
   className: nginx
@@ -58,4 +65,3 @@ dependencies:
     enabled: true
   airflow:
     enabled: false
-
