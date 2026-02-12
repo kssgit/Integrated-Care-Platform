@@ -26,11 +26,23 @@ def _resolve_client_key(request: Request) -> str:
     return "anonymous"
 
 
+def _parse_cursor(cursor: str) -> int:
+    try:
+        value = int(cursor)
+    except ValueError as exc:
+        raise ApiError("VALIDATION_ERROR", "cursor must be integer", 422) from exc
+    if value < 0:
+        raise ApiError("VALIDATION_ERROR", "cursor must be >= 0", 422)
+    return value
+
+
 @router.get("")
 async def list_facilities(
     request: Request,
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
+    cursor: str | None = None,
+    limit: int = Query(default=20, ge=1, le=100),
     district_code: str | None = None,
     service: FacilityService = Depends(get_facility_service),
     rate_limiter: SlidingWindowRateLimiter = Depends(get_rate_limiter),
@@ -43,17 +55,40 @@ async def list_facilities(
     if not allowed:
         raise ApiError("RATE_LIMIT_EXCEEDED", "Too many requests", 429)
 
-    query = FacilityListQuery(page=page, page_size=page_size, district_code=district_code)
-    cache_key = f"facilities:{page}:{page_size}:{district_code or '*'}"
+    query = FacilityListQuery(
+        page=page,
+        page_size=page_size,
+        cursor=cursor,
+        limit=limit,
+        district_code=district_code,
+    )
+    mode = "cursor" if query.cursor is not None else "page"
+    cursor_value = query.cursor or "*"
+    cache_key = f"facilities:{mode}:{page}:{page_size}:{cursor_value}:{limit}:{district_code or '*'}"
     cached = await cache.get(cache_key)
     if cached is not None:
         return cached
 
     try:
-        items, total = await asyncio.wait_for(
-            circuit_breaker.call(lambda: service.list_facilities(query), now_seconds=now),
-            timeout=5.0,
-        )
+        if query.cursor is not None:
+            parsed_cursor = _parse_cursor(query.cursor)
+            items, total, next_cursor = await asyncio.wait_for(
+                circuit_breaker.call(
+                    lambda: service.list_facilities_by_cursor(
+                        cursor=parsed_cursor,
+                        limit=query.limit,
+                        district_code=query.district_code,
+                    ),
+                    now_seconds=now,
+                ),
+                timeout=5.0,
+            )
+        else:
+            items, total = await asyncio.wait_for(
+                circuit_breaker.call(lambda: service.list_facilities(query), now_seconds=now),
+                timeout=5.0,
+            )
+            next_cursor = None
     except CircuitOpenError as exc:
         raise ApiError("UPSTREAM_UNAVAILABLE", "Please retry later", 503) from exc
     except TimeoutError as exc:
@@ -63,7 +98,7 @@ async def list_facilities(
     except Exception as exc:
         raise ApiError("UPSTREAM_FAILURE", "Upstream request failed", 502) from exc
 
-    meta = {"page": page, "page_size": page_size, "total": total}
+    meta = {"page": page, "page_size": page_size, "total": total, "next_cursor": next_cursor}
     payload = success_response([item.model_dump() for item in items], meta=meta)
     await cache.set(cache_key, payload)
     return payload

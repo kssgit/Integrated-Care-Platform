@@ -13,6 +13,7 @@ from api.observability import (
 )
 from api.response import error_response, success_response
 from api.routers.facilities import router as facilities_router
+from api.routers.internal_events import router as internal_events_router
 from api.telemetry import configure_otel
 
 
@@ -26,6 +27,7 @@ def create_app() -> FastAPI:
     )
     app.add_middleware(ObservabilityMiddleware, collector=app.state.composite_metrics)
     app.include_router(facilities_router)
+    app.include_router(internal_events_router)
 
     @app.get("/healthz")
     async def healthz() -> dict:

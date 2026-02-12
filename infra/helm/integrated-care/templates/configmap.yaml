@@ -9,6 +9,7 @@ data:
   API_HOST: {{ .Values.config.API_HOST | quote }}
   API_PORT: {{ .Values.config.API_PORT | quote }}
   API_CACHE_TTL_SECONDS: {{ .Values.config.API_CACHE_TTL_SECONDS | quote }}
+  PIPELINE_API_EVENT_PUBLISH_ENABLED: {{ .Values.config.PIPELINE_API_EVENT_PUBLISH_ENABLED | quote }}
   PIPELINE_MONITORING_HOST: {{ .Values.config.PIPELINE_MONITORING_HOST | quote }}
   PIPELINE_MONITORING_PORT: {{ .Values.config.PIPELINE_MONITORING_PORT | quote }}
   PIPELINE_STORE_BACKEND: {{ .Values.config.PIPELINE_STORE_BACKEND | quote }}

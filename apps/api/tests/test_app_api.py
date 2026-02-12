@@ -56,6 +56,7 @@ def test_facilities_endpoint_pagination_response_shape() -> None:
     assert len(body["data"]) == 2
     assert body["meta"]["page"] == 1
     assert body["meta"]["page_size"] == 2
+    assert body["meta"]["next_cursor"] is None
 
 
 def test_facilities_rate_limit_error_format() -> None:
@@ -116,3 +117,14 @@ def test_facilities_uses_cache_for_same_query() -> None:
     assert first.status_code == 200
     assert second.status_code == 200
     assert service.called == 1
+
+
+def test_facilities_cursor_mode_response_shape() -> None:
+    client = TestClient(create_app())
+    response = client.get("/v1/facilities?cursor=0&limit=1")
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["success"] is True
+    assert len(body["data"]) == 1
+    assert body["meta"]["next_cursor"] == "1"

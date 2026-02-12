@@ -5,6 +5,7 @@ import os
 
 from data_pipeline.core.pipeline import FacilityStore
 from data_pipeline.jobs.daily_sync import run_daily_sync
+from data_pipeline.jobs.events import publish_etl_completed_event
 from data_pipeline.jobs.extractor import ProviderFacilityExtractor
 from data_pipeline.jobs.postgres_store import PostgresFacilityStore
 from data_pipeline.jobs.publishing_store import PublishingFacilityStore
@@ -37,6 +38,14 @@ def _maybe_wrap_with_publisher(store: FacilityStore) -> FacilityStore:
     return PublishingFacilityStore(delegate=store, broker=broker, provider=provider)
 
 
+def _maybe_build_event_broker() -> KafkaMessageBroker | None:
+    enabled = os.getenv("PIPELINE_API_EVENT_PUBLISH_ENABLED", "false").lower() == "true"
+    if not enabled:
+        return None
+    bootstrap = _required_env("KAFKA_BOOTSTRAP_SERVERS")
+    return KafkaMessageBroker(bootstrap_servers=bootstrap)
+
+
 def main() -> None:
     base_url = _required_env("FACILITY_PROVIDER_BASE_URL")
     backend = os.getenv("PIPELINE_STORE_BACKEND", "jsonl").lower()
@@ -52,7 +61,17 @@ def main() -> None:
     )
     store = _build_store(backend=backend)
     store = _maybe_wrap_with_publisher(store)
-    asyncio.run(run_daily_sync(extractor=extractor, store=store))
+    event_broker = _maybe_build_event_broker()
+    saved_count = asyncio.run(run_daily_sync(extractor=extractor, store=store))
+    if event_broker:
+        provider = os.getenv("PIPELINE_PROVIDER_NAME", "seoul_open_data")
+        asyncio.run(
+            publish_etl_completed_event(
+                broker=event_broker,
+                provider=provider,
+                saved_count=saved_count,
+            )
+        )
 
 
 if __name__ == "__main__":

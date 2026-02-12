@@ -70,6 +70,7 @@ Key values:
 7. `secret.DATABASE_URL` (required for `postgres`)
 8. `secret.KAFKA_BOOTSTRAP_SERVERS` (required when Kafka publish enabled)
 9. `config.API_CACHE_TTL_SECONDS` (API facility cache TTL)
+10. `config.PIPELINE_API_EVENT_PUBLISH_ENABLED` (emit `etl_completed` to `api-events`)
 
 ## AKS Example
 

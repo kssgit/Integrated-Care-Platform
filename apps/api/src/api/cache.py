@@ -16,11 +16,19 @@ class CacheStore(ABC):
     async def set(self, key: str, value: dict[str, Any], ttl_seconds: int) -> None:
         raise NotImplementedError
 
+    @abstractmethod
+    async def invalidate_prefix(self, prefix: str) -> int:
+        raise NotImplementedError
+
 
 class RedisLikeCacheClient(Protocol):
     async def get(self, key: str) -> str | None: ...
 
     async def setex(self, key: str, seconds: int, value: str) -> bool: ...
+
+    async def keys(self, pattern: str) -> list[str]: ...
+
+    async def delete(self, *keys: str) -> int: ...
 
 
 class InMemoryCacheStore(CacheStore):
@@ -40,6 +48,12 @@ class InMemoryCacheStore(CacheStore):
     async def set(self, key: str, value: dict[str, Any], ttl_seconds: int) -> None:
         self._items[key] = (time.time() + ttl_seconds, value)
 
+    async def invalidate_prefix(self, prefix: str) -> int:
+        keys = [key for key in self._items if key.startswith(prefix)]
+        for key in keys:
+            self._items.pop(key, None)
+        return len(keys)
+
 
 class RedisCacheStore(CacheStore):
     def __init__(self, client: RedisLikeCacheClient) -> None:
@@ -55,6 +69,12 @@ class RedisCacheStore(CacheStore):
         payload = json.dumps(value, ensure_ascii=True)
         await self._client.setex(key, ttl_seconds, payload)
 
+    async def invalidate_prefix(self, prefix: str) -> int:
+        keys = await self._client.keys(f"{prefix}*")
+        if not keys:
+            return 0
+        return await self._client.delete(*keys)
+
 
 @dataclass
 class FacilityCache:
@@ -66,3 +86,6 @@ class FacilityCache:
 
     async def set(self, key: str, value: dict[str, Any]) -> None:
         await self.store.set(key, value, self.ttl_seconds)
+
+    async def invalidate_facilities(self) -> int:
+        return await self.store.invalidate_prefix("facilities:")

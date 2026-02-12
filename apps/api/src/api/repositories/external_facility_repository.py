@@ -29,3 +29,11 @@ class ExternalFacilityRepository:
         ]
         return entities, total
 
+    async def list_facilities_by_offset(
+        self,
+        offset: int,
+        limit: int,
+        district_code: str | None,
+    ) -> tuple[list[FacilityEntity], int]:
+        page = (offset // limit) + 1
+        return await self.list_facilities(page=page, page_size=limit, district_code=district_code)

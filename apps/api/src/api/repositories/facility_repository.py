@@ -30,3 +30,13 @@ class FacilityRepository:
         end = start + page_size
         return filtered[start:end], total
 
+    async def list_facilities_by_offset(
+        self,
+        offset: int,
+        limit: int,
+        district_code: str | None,
+    ) -> tuple[list[FacilityEntity], int]:
+        filtered = [item for item in self._items if not district_code or item.district_code == district_code]
+        total = len(filtered)
+        end = offset + limit
+        return filtered[offset:end], total
