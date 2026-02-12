@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 
 from data_pipeline.core.models import ProviderEvent
 
@@ -18,6 +18,5 @@ class BaseProviderAdapter(ABC):
             trace_id=trace_id,
             provider=self.provider_name,
             payload=payload,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
-
