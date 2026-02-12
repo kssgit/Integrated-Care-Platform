@@ -10,6 +10,16 @@ networkPolicy:
   allowDnsEgress: true
   egressAllowAll: true
 
+scheduling:
+  podAntiAffinity:
+    enabled: true
+    type: required
+  topologySpread:
+    enabled: true
+    topologyKey: topology.kubernetes.io/zone
+    maxSkew: 1
+    whenUnsatisfiable: DoNotSchedule
+
 config:
   API_CACHE_TTL_SECONDS: "45"
   API_EVENT_TOPIC: "api-events"

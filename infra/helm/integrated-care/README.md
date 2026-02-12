@@ -102,6 +102,8 @@ Key values:
 24. `networkPolicy.enabled` (namespace-scoped network policy)
 25. `api.pdb.enabled`, `api.pdb.minAvailable` (API disruption budget)
 26. `pipelineMonitoring.pdb.enabled`, `pipelineMonitoring.pdb.minAvailable` (monitoring disruption budget)
+27. `scheduling.podAntiAffinity.*` (cross-node anti-affinity)
+28. `scheduling.topologySpread.*` (zone/node spread constraints)
 
 ## AKS Example
 

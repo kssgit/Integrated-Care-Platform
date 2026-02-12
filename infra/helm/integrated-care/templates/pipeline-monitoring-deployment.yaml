@@ -23,6 +23,37 @@ spec:
       imagePullSecrets:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       {{- end }}
+      {{- if .Values.scheduling.podAntiAffinity.enabled }}
+      affinity:
+        podAntiAffinity:
+          {{- if eq .Values.scheduling.podAntiAffinity.type "required" }}
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: pipeline-monitoring
+                  app.kubernetes.io/instance: {{ .Release.Name }}
+              topologyKey: kubernetes.io/hostname
+          {{- else }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: pipeline-monitoring
+                    app.kubernetes.io/instance: {{ .Release.Name }}
+                topologyKey: kubernetes.io/hostname
+          {{- end }}
+      {{- end }}
+      {{- if .Values.scheduling.topologySpread.enabled }}
+      topologySpreadConstraints:
+        - maxSkew: {{ .Values.scheduling.topologySpread.maxSkew }}
+          topologyKey: {{ .Values.scheduling.topologySpread.topologyKey | quote }}
+          whenUnsatisfiable: {{ .Values.scheduling.topologySpread.whenUnsatisfiable }}
+          labelSelector:
+            matchLabels:
+              app: pipeline-monitoring
+              app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- end }}
       containers:
         - name: pipeline-monitoring
           image: "{{ .Values.pipelineMonitoring.image.repository }}:{{ .Values.pipelineMonitoring.image.tag }}"
@@ -55,4 +86,3 @@ spec:
           resources:
             {{- toYaml .Values.pipelineMonitoring.resources | nindent 12 }}
 {{- end }}
-

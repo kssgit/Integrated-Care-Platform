@@ -11,6 +11,16 @@ networkPolicy:
   allowDnsEgress: true
   egressAllowAll: true
 
+scheduling:
+  podAntiAffinity:
+    enabled: true
+    type: preferred
+  topologySpread:
+    enabled: true
+    topologyKey: topology.kubernetes.io/zone
+    maxSkew: 1
+    whenUnsatisfiable: ScheduleAnyway
+
 config:
   API_HOST: "0.0.0.0"
   API_PORT: "8000"
