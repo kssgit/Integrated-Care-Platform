@@ -19,6 +19,10 @@ spec:
         app: api-event-parking-monitor
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      serviceAccountName: {{ include "integrated-care.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      securityContext:
+        {{- toYaml .Values.security.podSecurityContext | nindent 8 }}
       {{- if .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
@@ -58,6 +62,8 @@ spec:
         - name: api-event-parking-monitor
           image: "{{ .Values.apiEventParkingMonitorWorker.image.repository }}:{{ .Values.apiEventParkingMonitorWorker.image.tag }}"
           imagePullPolicy: {{ .Values.apiEventParkingMonitorWorker.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.security.containerSecurityContext | nindent 12 }}
           command: ["python", "-m", "api.event_parking_monitor"]
           envFrom:
             - configMapRef:

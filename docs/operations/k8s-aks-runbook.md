@@ -86,3 +86,4 @@ helm upgrade --install integrated-care infra/helm/integrated-care \
 2. Use managed identity or Kubernetes secret integration for sensitive values.
 3. If Prometheus Operator is not installed, remove `servicemonitor.yaml` from `kustomization.yaml`.
 4. If you deploy via Helm, control OSS dependencies in `infra/helm/integrated-care/values.yaml`.
+5. For Workload Identity, set `serviceAccount.annotations.azure.workload.identity/client-id` in `values-aks.yaml`.

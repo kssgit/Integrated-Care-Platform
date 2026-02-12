@@ -17,6 +17,10 @@ spec:
         app.kubernetes.io/instance: {{ .Release.Name }}
         app: kafka-topic-provisioner
     spec:
+      serviceAccountName: {{ include "integrated-care.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      securityContext:
+        {{- toYaml .Values.security.podSecurityContext | nindent 8 }}
       restartPolicy: OnFailure
       {{- if .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -26,6 +30,8 @@ spec:
         - name: topic-provisioner
           image: "{{ .Values.kafkaTopicProvisioner.image.repository }}:{{ .Values.kafkaTopicProvisioner.image.tag }}"
           imagePullPolicy: {{ .Values.kafkaTopicProvisioner.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.security.containerSecurityContext | nindent 12 }}
           command:
             - /bin/bash
             - -ec

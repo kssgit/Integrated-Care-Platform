@@ -19,6 +19,10 @@ spec:
             app.kubernetes.io/instance: {{ .Release.Name }}
             app: etl-cronjob
         spec:
+          serviceAccountName: {{ include "integrated-care.serviceAccountName" . }}
+          automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+          securityContext:
+            {{- toYaml .Values.security.podSecurityContext | nindent 12 }}
           restartPolicy: OnFailure
           {{- if .Values.imagePullSecrets }}
           imagePullSecrets:
@@ -28,6 +32,8 @@ spec:
             - name: etl
               image: "{{ .Values.etlCronJob.image.repository }}:{{ .Values.etlCronJob.image.tag }}"
               imagePullPolicy: {{ .Values.etlCronJob.image.pullPolicy }}
+              securityContext:
+                {{- toYaml .Values.security.containerSecurityContext | nindent 16 }}
               command: ["python", "-m", "data_pipeline.jobs"]
               envFrom:
                 - configMapRef:
@@ -39,4 +45,3 @@ spec:
               resources:
                 {{- toYaml .Values.etlCronJob.resources | nindent 16 }}
 {{- end }}
-

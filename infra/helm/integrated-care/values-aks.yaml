@@ -4,6 +4,13 @@ global:
 imagePullSecrets:
   - name: acr-pull-secret
 
+serviceAccount:
+  create: true
+  name: ""
+  annotations:
+    azure.workload.identity/client-id: ""
+  automountServiceAccountToken: true
+
 networkPolicy:
   enabled: true
   allowSameNamespaceIngress: true

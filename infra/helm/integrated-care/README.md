@@ -107,6 +107,8 @@ Key values:
 28. `scheduling.topologySpread.*` (zone/node spread constraints)
 29. `kafkaTopicProvisioner.enabled` (create Kafka topics on install/upgrade)
 30. `kafkaTopicProvisioner.topics[]` (topic name/partitions/replicationFactor)
+31. `serviceAccount.*` (service account + workload identity annotations)
+32. `security.podSecurityContext.*`, `security.containerSecurityContext.*` (runtime hardening)
 
 ## Kafka Topic Provisioner
 
