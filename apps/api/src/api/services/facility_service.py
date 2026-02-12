@@ -1,11 +1,21 @@
 from __future__ import annotations
 
-from api.repositories.facility_repository import FacilityRepository
+from typing import Protocol
+
 from api.schemas.facility import FacilityItem, FacilityListQuery
 
 
+class FacilityRepositoryLike(Protocol):
+    async def list_facilities(
+        self,
+        page: int,
+        page_size: int,
+        district_code: str | None,
+    ) -> tuple[list, int]: ...
+
+
 class FacilityService:
-    def __init__(self, repository: FacilityRepository) -> None:
+    def __init__(self, repository: FacilityRepositoryLike) -> None:
         self._repository = repository
 
     async def list_facilities(self, query: FacilityListQuery) -> tuple[list[FacilityItem], int]:
@@ -15,4 +25,3 @@ class FacilityService:
             district_code=query.district_code,
         )
         return [FacilityItem(id=row.id, name=row.name, district_code=row.district_code) for row in rows], total
-

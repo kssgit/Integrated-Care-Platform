@@ -51,6 +51,8 @@ async def list_facilities(
         raise ApiError("UPSTREAM_UNAVAILABLE", "Please retry later", 503) from exc
     except TimeoutError as exc:
         raise ApiError("UPSTREAM_TIMEOUT", "Upstream timeout", 504) from exc
+    except ApiError:
+        raise
     except Exception as exc:
         raise ApiError("UPSTREAM_FAILURE", "Upstream request failed", 502) from exc
 
