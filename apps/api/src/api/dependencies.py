@@ -11,6 +11,7 @@ from api.repositories.external_facility_repository import ExternalFacilityReposi
 from api.repositories.facility_repository import FacilityRepository
 from api.repositories.safe_number_repository import ProviderSafeNumberGateway, SafeNumberRepository
 from api.services.facility_service import FacilityService
+from api.services.geo_service import GeoService
 from api.services.safe_number_service import SafeNumberService
 
 provider_base_url = os.getenv("FACILITY_PROVIDER_BASE_URL")
@@ -22,6 +23,7 @@ else:
     _facility_repository = FacilityRepository()
 
 _facility_service = FacilityService(_facility_repository)
+_geo_service = GeoService()
 safe_number_provider_base_url = os.getenv("SAFE_NUMBER_PROVIDER_BASE_URL")
 if safe_number_provider_base_url:
     _safe_number_repository = SafeNumberRepository(
@@ -72,3 +74,7 @@ def get_facility_cache() -> FacilityCache:
 
 def get_safe_number_service() -> SafeNumberService:
     return _safe_number_service
+
+
+def get_geo_service() -> GeoService:
+    return _geo_service
