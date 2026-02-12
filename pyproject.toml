@@ -28,15 +28,22 @@ orchestration = [
 ]
 
 [tool.pytest.ini_options]
-pythonpath = ["apps/api/src", "packages/data-pipeline/src"]
+pythonpath = ["apps/api/src", "packages/data-pipeline/src", "packages/geo-engine/src"]
 addopts = "-p no:cacheprovider -v"
 asyncio_mode = "auto"
-testpaths = ["apps/api/tests", "packages/data-pipeline/tests"]
+testpaths = ["apps/api/tests", "packages/data-pipeline/tests", "packages/geo-engine/tests"]
 
 [tool.ruff]
 target-version = "py311"
 line-length = 100
-src = ["apps/api/src", "packages/data-pipeline/src", "apps/api/tests", "packages/data-pipeline/tests"]
+src = [
+    "apps/api/src",
+    "packages/data-pipeline/src",
+    "packages/geo-engine/src",
+    "apps/api/tests",
+    "packages/data-pipeline/tests",
+    "packages/geo-engine/tests",
+]
 exclude = ["__pycache__", ".git"]
 
 [tool.ruff.lint]
@@ -50,5 +57,5 @@ warn_unused_ignores = true
 disallow_untyped_defs = false
 
 [[tool.mypy.overrides]]
-path = ["apps/api/src", "packages/data-pipeline/src"]
+path = ["apps/api/src", "packages/data-pipeline/src", "packages/geo-engine/src"]
 disallow_untyped_defs = true
