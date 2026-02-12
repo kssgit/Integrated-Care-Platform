@@ -45,9 +45,15 @@ helm upgrade --install integrated-care infra/helm/integrated-care \
 ```bash
 helm upgrade --install integrated-care infra/helm/integrated-care \
   --namespace integrated-care --create-namespace \
-  --set api.image.repository=<ACR_LOGIN_SERVER>/integrated-care-api \
-  --set api.image.tag=<TAG> \
-  --set pipelineMonitoring.image.repository=<ACR_LOGIN_SERVER>/integrated-care-pipeline \
-  --set pipelineMonitoring.image.tag=<TAG>
+  -f infra/helm/integrated-care/values-aks.yaml
 ```
 
+Override image tags at deploy time:
+
+```bash
+helm upgrade --install integrated-care infra/helm/integrated-care \
+  --namespace integrated-care --create-namespace \
+  -f infra/helm/integrated-care/values-aks.yaml \
+  --set api.image.tag=<TAG> \
+  --set pipelineMonitoring.image.tag=<TAG>
+```

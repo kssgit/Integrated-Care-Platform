@@ -1,0 +1,61 @@
+global:
+  namespace: integrated-care
+
+imagePullSecrets:
+  - name: acr-pull-secret
+
+api:
+  image:
+    repository: myacr.azurecr.io/integrated-care-api
+    tag: latest
+  service:
+    type: ClusterIP
+  hpa:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 30
+    averageCpuUtilization: 60
+
+pipelineMonitoring:
+  image:
+    repository: myacr.azurecr.io/integrated-care-pipeline
+    tag: latest
+  service:
+    type: ClusterIP
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: api.integrated-care.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          serviceName: api
+          servicePort: 80
+  tls:
+    - secretName: integrated-care-api-tls
+      hosts:
+        - api.integrated-care.example.com
+
+secret:
+  create: true
+  REDIS_URL: redis://integrated-care-redis-master:6379/0
+  FACILITY_PROVIDER_BASE_URL: https://provider.example.com
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
+
+dependencies:
+  redis:
+    enabled: true
+  kafka:
+    enabled: true
+  kubePrometheusStack:
+    enabled: true
+  airflow:
+    enabled: false
+
