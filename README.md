@@ -76,3 +76,10 @@
 5. `apps/web`에서 MVP 사용자 플로우(검색→비교→문의→리뷰) 완성
 
 상세 설계는 `docs/architecture` 및 `docs/roadmap` 문서를 참고하세요.
+
+## Runtime Commands (Git Bash)
+
+- API server: `./scripts/run-api.sh`
+- Data pipeline monitoring: `./scripts/run-data-pipeline-monitoring.sh`
+- Test execution: `./scripts/run-tests.sh`
+- Operations runbook: `docs/operations/runtime-runbook.md`
