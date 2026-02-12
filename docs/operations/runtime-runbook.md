@@ -51,6 +51,15 @@ PIPELINE_START_PAGE=1 PIPELINE_END_PAGE=1 \
 ./scripts/run-data-pipeline-job.sh
 ```
 
+## Run API Event Consumer
+
+```bash
+KAFKA_BOOTSTRAP_SERVERS=localhost:9092 \
+API_EVENT_TOPIC=api-events \
+API_EVENT_DLQ_TOPIC=api-events-dlq \
+./scripts/run-api-event-consumer.sh
+```
+
 PostgreSQL + Kafka example:
 
 ```bash

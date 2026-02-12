@@ -9,6 +9,11 @@ data:
   API_HOST: {{ .Values.config.API_HOST | quote }}
   API_PORT: {{ .Values.config.API_PORT | quote }}
   API_CACHE_TTL_SECONDS: {{ .Values.config.API_CACHE_TTL_SECONDS | quote }}
+  API_EVENT_TOPIC: {{ .Values.config.API_EVENT_TOPIC | quote }}
+  API_EVENT_DLQ_TOPIC: {{ .Values.config.API_EVENT_DLQ_TOPIC | quote }}
+  API_EVENT_CONSUMER_GROUP: {{ .Values.config.API_EVENT_CONSUMER_GROUP | quote }}
+  API_EVENT_CONSUMER_MAX_RETRIES: {{ .Values.config.API_EVENT_CONSUMER_MAX_RETRIES | quote }}
+  API_EVENT_CONSUMER_BASE_DELAY_SECONDS: {{ .Values.config.API_EVENT_CONSUMER_BASE_DELAY_SECONDS | quote }}
   PIPELINE_API_EVENT_PUBLISH_ENABLED: {{ .Values.config.PIPELINE_API_EVENT_PUBLISH_ENABLED | quote }}
   PIPELINE_MONITORING_HOST: {{ .Values.config.PIPELINE_MONITORING_HOST | quote }}
   PIPELINE_MONITORING_PORT: {{ .Values.config.PIPELINE_MONITORING_PORT | quote }}

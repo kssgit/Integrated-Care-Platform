@@ -80,6 +80,7 @@
 ## Runtime Commands (Git Bash)
 
 - API server: `./scripts/run-api.sh`
+- API event consumer: `./scripts/run-api-event-consumer.sh`
 - Data pipeline monitoring: `./scripts/run-data-pipeline-monitoring.sh`
 - Data pipeline one-shot job: `./scripts/run-data-pipeline-job.sh`
 - Test execution: `./scripts/run-tests.sh`

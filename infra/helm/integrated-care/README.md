@@ -73,6 +73,9 @@ Key values:
 9. `config.API_CACHE_TTL_SECONDS` (API facility cache TTL)
 10. `config.PIPELINE_API_EVENT_PUBLISH_ENABLED` (emit `etl_completed` to `api-events`)
 11. `apiEventConsumer.enabled` (consume `api-events` and invalidate API cache)
+12. `config.API_EVENT_CONSUMER_MAX_RETRIES` (consumer retry count before DLQ)
+13. `config.API_EVENT_CONSUMER_BASE_DELAY_SECONDS` (retry backoff base seconds)
+14. `config.API_EVENT_DLQ_TOPIC` (DLQ topic for failed events)
 
 ## AKS Example
 
