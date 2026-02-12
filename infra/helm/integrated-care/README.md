@@ -76,6 +76,7 @@ Key values:
 12. `config.API_EVENT_CONSUMER_MAX_RETRIES` (consumer retry count before DLQ)
 13. `config.API_EVENT_CONSUMER_BASE_DELAY_SECONDS` (retry backoff base seconds)
 14. `config.API_EVENT_DLQ_TOPIC` (DLQ topic for failed events)
+15. `config.API_EVENT_DEDUP_TTL_SECONDS` (dedup window by `trace_id`)
 
 ## AKS Example
 
