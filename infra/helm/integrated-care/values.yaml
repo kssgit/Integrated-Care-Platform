@@ -11,10 +11,13 @@ config:
   API_CACHE_TTL_SECONDS: "30"
   API_EVENT_TOPIC: "api-events"
   API_EVENT_DLQ_TOPIC: "api-events-dlq"
+  API_EVENT_PARKING_TOPIC: "api-events-parking"
   API_EVENT_CONSUMER_GROUP: "api-event-consumer"
   API_EVENT_CONSUMER_MAX_RETRIES: "3"
   API_EVENT_CONSUMER_BASE_DELAY_SECONDS: "0.1"
   API_EVENT_DEDUP_TTL_SECONDS: "3600"
+  API_EVENT_DLQ_RETRY_GROUP: "api-event-dlq-retry"
+  API_EVENT_DLQ_RETRY_MAX_ATTEMPTS: "3"
   PIPELINE_API_EVENT_PUBLISH_ENABLED: "false"
   PIPELINE_MONITORING_HOST: "0.0.0.0"
   PIPELINE_MONITORING_PORT: "8001"
@@ -58,6 +61,21 @@ api:
     averageCpuUtilization: 65
 
 apiEventConsumer:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: ghcr.io/example/integrated-care-api
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+apiEventDlqRetryWorker:
   enabled: false
   replicaCount: 1
   image:

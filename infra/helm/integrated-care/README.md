@@ -8,6 +8,7 @@ Deploy:
 2. Data pipeline monitoring service
 3. ETL CronJob worker
 4. API event consumer worker (optional)
+5. API event DLQ retry worker (optional)
 
 and optionally pull open-source platform dependencies through Helm dependency management.
 
@@ -77,6 +78,9 @@ Key values:
 13. `config.API_EVENT_CONSUMER_BASE_DELAY_SECONDS` (retry backoff base seconds)
 14. `config.API_EVENT_DLQ_TOPIC` (DLQ topic for failed events)
 15. `config.API_EVENT_DEDUP_TTL_SECONDS` (dedup window by `trace_id`)
+16. `apiEventDlqRetryWorker.enabled` (consume DLQ and replay to `api-events`)
+17. `config.API_EVENT_DLQ_RETRY_MAX_ATTEMPTS` (max replay attempts)
+18. `config.API_EVENT_PARKING_TOPIC` (final parking topic after retries)
 
 ## AKS Example
 

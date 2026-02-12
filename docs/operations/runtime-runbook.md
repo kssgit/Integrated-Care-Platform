@@ -60,6 +60,16 @@ API_EVENT_DLQ_TOPIC=api-events-dlq \
 ./scripts/run-api-event-consumer.sh
 ```
 
+## Run API Event DLQ Retry Worker
+
+```bash
+KAFKA_BOOTSTRAP_SERVERS=localhost:9092 \
+API_EVENT_DLQ_TOPIC=api-events-dlq \
+API_EVENT_TOPIC=api-events \
+API_EVENT_PARKING_TOPIC=api-events-parking \
+./scripts/run-api-event-dlq-retry.sh
+```
+
 PostgreSQL + Kafka example:
 
 ```bash

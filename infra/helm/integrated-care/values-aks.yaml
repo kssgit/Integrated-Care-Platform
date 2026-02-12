@@ -8,10 +8,13 @@ config:
   API_CACHE_TTL_SECONDS: "45"
   API_EVENT_TOPIC: "api-events"
   API_EVENT_DLQ_TOPIC: "api-events-dlq"
+  API_EVENT_PARKING_TOPIC: "api-events-parking"
   API_EVENT_CONSUMER_GROUP: "api-event-consumer"
   API_EVENT_CONSUMER_MAX_RETRIES: "5"
   API_EVENT_CONSUMER_BASE_DELAY_SECONDS: "0.2"
   API_EVENT_DEDUP_TTL_SECONDS: "3600"
+  API_EVENT_DLQ_RETRY_GROUP: "api-event-dlq-retry"
+  API_EVENT_DLQ_RETRY_MAX_ATTEMPTS: "5"
   PIPELINE_API_EVENT_PUBLISH_ENABLED: "true"
   PIPELINE_STORE_BACKEND: "postgres"
   PIPELINE_KAFKA_PUBLISH_ENABLED: "true"
@@ -30,6 +33,12 @@ api:
     averageCpuUtilization: 60
 
 apiEventConsumer:
+  enabled: true
+  image:
+    repository: myacr.azurecr.io/integrated-care-api
+    tag: latest
+
+apiEventDlqRetryWorker:
   enabled: true
   image:
     repository: myacr.azurecr.io/integrated-care-api
