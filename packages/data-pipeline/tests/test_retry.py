@@ -7,6 +7,7 @@ from data_pipeline.core.retry import with_exponential_backoff
 @pytest.mark.asyncio
 async def test_backoff_retries_until_success() -> None:
     state = {"count": 0}
+    retries: list[tuple[int, float]] = []
 
     async def flaky_operation() -> str:
         state["count"] += 1
@@ -14,9 +15,15 @@ async def test_backoff_retries_until_success() -> None:
             raise RuntimeError("temporary failure")
         return "ok"
 
-    result = await with_exponential_backoff(flaky_operation, retries=3, base_delay_seconds=0.0)
+    result = await with_exponential_backoff(
+        flaky_operation,
+        retries=3,
+        base_delay_seconds=0.0,
+        on_retry=lambda attempt, delay: retries.append((attempt, delay)),
+    )
     assert result == "ok"
     assert state["count"] == 3
+    assert retries == [(1, 0.0), (2, 0.0)]
 
 
 @pytest.mark.asyncio

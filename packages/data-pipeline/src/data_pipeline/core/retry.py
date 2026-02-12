@@ -10,6 +10,7 @@ async def with_exponential_backoff(
     operation: Callable[[], Awaitable[T]],
     retries: int = 3,
     base_delay_seconds: float = 0.1,
+    on_retry: Callable[[int, float], None] | None = None,
 ) -> T:
     attempt = 0
     while attempt < retries:
@@ -20,6 +21,7 @@ async def with_exponential_backoff(
             if attempt >= retries:
                 raise ProviderRequestError(str(exc)) from exc
             delay = base_delay_seconds * (2 ** (attempt - 1))
+            if on_retry:
+                on_retry(attempt, delay)
             await asyncio.sleep(delay)
     raise ProviderRequestError("retry attempts exhausted")
-

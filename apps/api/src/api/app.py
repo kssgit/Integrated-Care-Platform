@@ -5,12 +5,16 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from api.errors import ApiError
+from api.middleware import ObservabilityMiddleware
+from api.observability import InMemoryApiMetricsCollector
 from api.response import error_response, success_response
 from api.routers.facilities import router as facilities_router
 
 
 def create_app() -> FastAPI:
     app = FastAPI(title="Integrated Care API", version="0.1.0")
+    app.state.api_metrics = InMemoryApiMetricsCollector()
+    app.add_middleware(ObservabilityMiddleware, collector=app.state.api_metrics)
     app.include_router(facilities_router)
 
     @app.get("/healthz")
@@ -33,4 +37,3 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-
