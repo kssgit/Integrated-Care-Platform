@@ -9,6 +9,7 @@ Deploy:
 3. ETL CronJob worker
 4. API event consumer worker (optional)
 5. API event DLQ retry worker (optional)
+6. API event parking monitor worker (optional)
 
 and optionally pull open-source platform dependencies through Helm dependency management.
 
@@ -81,6 +82,11 @@ Key values:
 16. `apiEventDlqRetryWorker.enabled` (consume DLQ and replay to `api-events`)
 17. `config.API_EVENT_DLQ_RETRY_MAX_ATTEMPTS` (max replay attempts)
 18. `config.API_EVENT_PARKING_TOPIC` (final parking topic after retries)
+19. `apiEventParkingMonitorWorker.enabled` (monitor parking topic)
+20. `secret.PARKING_ALERT_WEBHOOK_URL` (webhook for parking alerts)
+21. `config.PARKING_ALERT_THRESHOLD` (alert threshold per window)
+22. `config.PARKING_ALERT_WINDOW_SECONDS` (window size in seconds)
+23. `config.PARKING_ALERT_COOLDOWN_SECONDS` (minimum seconds between alerts)
 
 ## AKS Example
 

@@ -82,6 +82,7 @@
 - API server: `./scripts/run-api.sh`
 - API event consumer: `./scripts/run-api-event-consumer.sh`
 - API event DLQ retry worker: `./scripts/run-api-event-dlq-retry.sh`
+- API event parking monitor: `./scripts/run-api-event-parking-monitor.sh`
 - Data pipeline monitoring: `./scripts/run-data-pipeline-monitoring.sh`
 - Data pipeline one-shot job: `./scripts/run-data-pipeline-job.sh`
 - Test execution: `./scripts/run-tests.sh`

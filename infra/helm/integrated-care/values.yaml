@@ -18,6 +18,10 @@ config:
   API_EVENT_DEDUP_TTL_SECONDS: "3600"
   API_EVENT_DLQ_RETRY_GROUP: "api-event-dlq-retry"
   API_EVENT_DLQ_RETRY_MAX_ATTEMPTS: "3"
+  API_EVENT_PARKING_MONITOR_GROUP: "api-event-parking-monitor"
+  PARKING_ALERT_THRESHOLD: "10"
+  PARKING_ALERT_WINDOW_SECONDS: "300"
+  PARKING_ALERT_COOLDOWN_SECONDS: "300"
   PIPELINE_API_EVENT_PUBLISH_ENABLED: "false"
   PIPELINE_MONITORING_HOST: "0.0.0.0"
   PIPELINE_MONITORING_PORT: "8001"
@@ -34,6 +38,7 @@ secret:
   REDIS_URL: "redis://redis-master:6379/0"
   DATABASE_URL: ""
   KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  PARKING_ALERT_WEBHOOK_URL: ""
   FACILITY_PROVIDER_BASE_URL: "https://provider.example.com"
 
 api:
@@ -76,6 +81,21 @@ apiEventConsumer:
       memory: "512Mi"
 
 apiEventDlqRetryWorker:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: ghcr.io/example/integrated-care-api
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+apiEventParkingMonitorWorker:
   enabled: false
   replicaCount: 1
   image:

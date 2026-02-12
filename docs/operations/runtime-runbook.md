@@ -70,6 +70,15 @@ API_EVENT_PARKING_TOPIC=api-events-parking \
 ./scripts/run-api-event-dlq-retry.sh
 ```
 
+## Run API Event Parking Monitor
+
+```bash
+KAFKA_BOOTSTRAP_SERVERS=localhost:9092 \
+API_EVENT_PARKING_TOPIC=api-events-parking \
+PARKING_ALERT_WEBHOOK_URL=https://hooks.example.com/alerts \
+./scripts/run-api-event-parking-monitor.sh
+```
+
 PostgreSQL + Kafka example:
 
 ```bash

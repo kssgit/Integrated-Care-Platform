@@ -8,6 +8,7 @@ This runbook defines a baseline deployment flow for Kubernetes and AKS.
 2. Data pipeline monitoring service (`python -m data_pipeline.monitoring`)
 3. ETL CronJob (`python -m data_pipeline.jobs`)
 4. API event consumer (`python -m api.event_consumer`)
+5. API event parking monitor (`python -m api.event_parking_monitor`)
 
 ## Manifest Location
 

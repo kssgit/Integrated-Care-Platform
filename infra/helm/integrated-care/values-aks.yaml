@@ -15,6 +15,10 @@ config:
   API_EVENT_DEDUP_TTL_SECONDS: "3600"
   API_EVENT_DLQ_RETRY_GROUP: "api-event-dlq-retry"
   API_EVENT_DLQ_RETRY_MAX_ATTEMPTS: "5"
+  API_EVENT_PARKING_MONITOR_GROUP: "api-event-parking-monitor"
+  PARKING_ALERT_THRESHOLD: "10"
+  PARKING_ALERT_WINDOW_SECONDS: "300"
+  PARKING_ALERT_COOLDOWN_SECONDS: "300"
   PIPELINE_API_EVENT_PUBLISH_ENABLED: "true"
   PIPELINE_STORE_BACKEND: "postgres"
   PIPELINE_KAFKA_PUBLISH_ENABLED: "true"
@@ -39,6 +43,12 @@ apiEventConsumer:
     tag: latest
 
 apiEventDlqRetryWorker:
+  enabled: true
+  image:
+    repository: myacr.azurecr.io/integrated-care-api
+    tag: latest
+
+apiEventParkingMonitorWorker:
   enabled: true
   image:
     repository: myacr.azurecr.io/integrated-care-api
@@ -80,6 +90,7 @@ secret:
   REDIS_URL: redis://integrated-care-redis-master:6379/0
   DATABASE_URL: ""
   KAFKA_BOOTSTRAP_SERVERS: integrated-care-kafka:9092
+  PARKING_ALERT_WEBHOOK_URL: ""
   FACILITY_PROVIDER_BASE_URL: https://provider.example.com
 
 serviceMonitor:

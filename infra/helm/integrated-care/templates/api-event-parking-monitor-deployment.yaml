@@ -1,0 +1,41 @@
+{{- if .Values.apiEventParkingMonitorWorker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "integrated-care.fullname" . }}-api-event-parking-monitor
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "integrated-care.labels" . | nindent 4 }}
+    app: api-event-parking-monitor
+spec:
+  replicas: {{ .Values.apiEventParkingMonitorWorker.replicaCount }}
+  selector:
+    matchLabels:
+      app: api-event-parking-monitor
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: api-event-parking-monitor
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: api-event-parking-monitor
+          image: "{{ .Values.apiEventParkingMonitorWorker.image.repository }}:{{ .Values.apiEventParkingMonitorWorker.image.tag }}"
+          imagePullPolicy: {{ .Values.apiEventParkingMonitorWorker.image.pullPolicy }}
+          command: ["python", "-m", "api.event_parking_monitor"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "integrated-care.fullname" . }}-config
+            {{- if .Values.secret.create }}
+            - secretRef:
+                name: {{ include "integrated-care.fullname" . }}-secret
+            {{- end }}
+          resources:
+            {{- toYaml .Values.apiEventParkingMonitorWorker.resources | nindent 12 }}
+{{- end }}
+
