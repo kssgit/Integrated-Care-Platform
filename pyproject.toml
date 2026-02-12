@@ -21,6 +21,9 @@ dev = [
     "ruff>=0.1.0",
     "mypy>=1.0.0",
 ]
+orchestration = [
+    "apache-airflow>=2.9,<3.0",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["apps/api/src", "packages/data-pipeline/src"]

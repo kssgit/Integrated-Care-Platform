@@ -56,3 +56,9 @@ PIPELINE_MONITORING_HOST=0.0.0.0 PIPELINE_MONITORING_PORT=8011 ./scripts/run-dat
 3. Pipeline metrics: `http://localhost:8001/metrics`
 4. Pipeline health: `http://localhost:8001/healthz`
 
+## Orchestration
+
+1. Airflow integration guide: `docs/operations/airflow-runbook.md`
+2. Airflow DAG template: `packages/data-pipeline/dags/daily_sync_dag.py`
+3. Kubernetes/AKS deployment guide: `docs/operations/k8s-aks-runbook.md`
+4. Helm chart: `infra/helm/integrated-care`

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "integrated-care.fullname" . }}-config
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "integrated-care.labels" . | nindent 4 }}
+data:
+  API_HOST: {{ .Values.config.API_HOST | quote }}
+  API_PORT: {{ .Values.config.API_PORT | quote }}
+  PIPELINE_MONITORING_HOST: {{ .Values.config.PIPELINE_MONITORING_HOST | quote }}
+  PIPELINE_MONITORING_PORT: {{ .Values.config.PIPELINE_MONITORING_PORT | quote }}
+

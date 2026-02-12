@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: integrated-care-config
+  namespace: integrated-care
+data:
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
+  PIPELINE_MONITORING_HOST: "0.0.0.0"
+  PIPELINE_MONITORING_PORT: "8001"
+

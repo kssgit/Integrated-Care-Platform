@@ -31,6 +31,10 @@ def create_app() -> FastAPI:
     async def healthz() -> dict:
         return success_response({"status": "ok"}, meta={})
 
+    @app.get("/readyz")
+    async def readyz() -> dict:
+        return success_response({"status": "ready"}, meta={})
+
     @app.get("/metrics")
     async def metrics() -> Response:
         payload = app.state.prom_metrics.render()

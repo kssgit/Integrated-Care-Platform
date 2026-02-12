@@ -12,6 +12,10 @@ def create_monitoring_app() -> FastAPI:
     async def healthz() -> dict[str, str]:
         return {"status": "ok"}
 
+    @app.get("/readyz")
+    async def readyz() -> dict[str, str]:
+        return {"status": "ready"}
+
     @app.get("/metrics")
     async def metrics() -> Response:
         body = pipeline_exporter.render(pipeline_metrics)
@@ -21,4 +25,3 @@ def create_monitoring_app() -> FastAPI:
 
 
 app = create_monitoring_app()
-

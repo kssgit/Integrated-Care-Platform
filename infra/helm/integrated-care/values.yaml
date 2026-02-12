@@ -1,0 +1,88 @@
+global:
+  nameOverride: ""
+  fullnameOverride: ""
+  namespace: integrated-care
+
+imagePullSecrets: []
+
+config:
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
+  PIPELINE_MONITORING_HOST: "0.0.0.0"
+  PIPELINE_MONITORING_PORT: "8001"
+
+secret:
+  create: true
+  REDIS_URL: "redis://redis-master:6379/0"
+  FACILITY_PROVIDER_BASE_URL: "https://provider.example.com"
+
+api:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ghcr.io/example/integrated-care-api
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8000
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 20
+    averageCpuUtilization: 65
+
+pipelineMonitoring:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/example/integrated-care-pipeline
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8001
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: integrated-care.local
+      paths:
+        - path: /
+          pathType: Prefix
+          serviceName: api
+          servicePort: 80
+  tls: []
+
+dependencies:
+  redis:
+    enabled: true
+  kafka:
+    enabled: true
+  kubePrometheusStack:
+    enabled: false
+  airflow:
+    enabled: false
+

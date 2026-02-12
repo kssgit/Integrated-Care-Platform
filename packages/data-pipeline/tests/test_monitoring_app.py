@@ -46,3 +46,11 @@ def test_pipeline_metrics_endpoint_exposes_pipeline_metrics() -> None:
     assert "etl_stage_duration_ms" in body
     assert "etl_processed_records_total" in body
 
+
+def test_pipeline_monitoring_readiness_endpoint() -> None:
+    client = TestClient(create_monitoring_app())
+    response = client.get("/readyz")
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["status"] == "ready"

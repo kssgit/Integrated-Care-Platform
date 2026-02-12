@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: integrated-care
+  namespace: integrated-care
+  labels:
+    app: integrated-care
+spec:
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - api
+          - pipeline-monitoring
+  namespaceSelector:
+    matchNames:
+      - integrated-care
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+

@@ -21,6 +21,16 @@ def test_health_endpoint_response_shape() -> None:
     assert body["data"]["status"] == "ok"
 
 
+def test_ready_endpoint_response_shape() -> None:
+    client = TestClient(create_app())
+    response = client.get("/readyz")
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["success"] is True
+    assert body["data"]["status"] == "ready"
+
+
 def test_facilities_endpoint_pagination_response_shape() -> None:
     app = create_app()
     client = TestClient(app)
@@ -70,4 +80,3 @@ def test_facilities_validation_error_shape() -> None:
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "VALIDATION_ERROR"
-

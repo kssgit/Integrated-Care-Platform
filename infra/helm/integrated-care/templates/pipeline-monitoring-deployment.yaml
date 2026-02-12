@@ -1,0 +1,58 @@
+{{- if .Values.pipelineMonitoring.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "integrated-care.fullname" . }}-pipeline-monitoring
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "integrated-care.labels" . | nindent 4 }}
+    app: pipeline-monitoring
+spec:
+  replicas: {{ .Values.pipelineMonitoring.replicaCount }}
+  selector:
+    matchLabels:
+      app: pipeline-monitoring
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: pipeline-monitoring
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: pipeline-monitoring
+          image: "{{ .Values.pipelineMonitoring.image.repository }}:{{ .Values.pipelineMonitoring.image.tag }}"
+          imagePullPolicy: {{ .Values.pipelineMonitoring.image.pullPolicy }}
+          command: ["python", "-m", "data_pipeline.monitoring"]
+          ports:
+            - name: http
+              containerPort: {{ .Values.pipelineMonitoring.service.targetPort }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "integrated-care.fullname" . }}-config
+            {{- if .Values.secret.create }}
+            - secretRef:
+                name: {{ include "integrated-care.fullname" . }}-secret
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 2
+          resources:
+            {{- toYaml .Values.pipelineMonitoring.resources | nindent 12 }}
+{{- end }}
+
