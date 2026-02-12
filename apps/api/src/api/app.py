@@ -2,24 +2,39 @@ from __future__ import annotations
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from api.errors import ApiError
 from api.middleware import ObservabilityMiddleware
-from api.observability import InMemoryApiMetricsCollector
+from api.observability import (
+    CompositeApiMetricsCollector,
+    InMemoryApiMetricsCollector,
+    PrometheusApiMetricsCollector,
+)
 from api.response import error_response, success_response
 from api.routers.facilities import router as facilities_router
+from api.telemetry import configure_otel
 
 
 def create_app() -> FastAPI:
     app = FastAPI(title="Integrated Care API", version="0.1.0")
+    configure_otel(service_name="integrated-care-api")
     app.state.api_metrics = InMemoryApiMetricsCollector()
-    app.add_middleware(ObservabilityMiddleware, collector=app.state.api_metrics)
+    app.state.prom_metrics = PrometheusApiMetricsCollector()
+    app.state.composite_metrics = CompositeApiMetricsCollector(
+        [app.state.api_metrics, app.state.prom_metrics]
+    )
+    app.add_middleware(ObservabilityMiddleware, collector=app.state.composite_metrics)
     app.include_router(facilities_router)
 
     @app.get("/healthz")
     async def healthz() -> dict:
         return success_response({"status": "ok"}, meta={})
+
+    @app.get("/metrics")
+    async def metrics() -> Response:
+        payload = app.state.prom_metrics.render()
+        return Response(content=payload, media_type="text/plain; version=0.0.4")
 
     @app.exception_handler(ApiError)
     async def handle_api_error(_: Request, exc: ApiError) -> JSONResponse:
