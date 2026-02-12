@@ -1,0 +1,42 @@
+[project]
+name = "integrated-care-platform"
+version = "0.1.0"
+description = "서울형 통합 돌봄 중개 플랫폼 (Seoul Care Plus)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["apps/api/src", "packages/data-pipeline/src"]
+addopts = "-p no:cacheprovider -v"
+asyncio_mode = "auto"
+testpaths = ["apps/api/tests", "packages/data-pipeline/tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["apps/api/src", "packages/data-pipeline/src", "apps/api/tests", "packages/data-pipeline/tests"]
+exclude = ["__pycache__", ".git"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_ignores = true
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+path = ["apps/api/src", "packages/data-pipeline/src"]
+disallow_untyped_defs = true

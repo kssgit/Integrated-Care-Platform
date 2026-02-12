@@ -60,7 +60,14 @@
 - **실시간/비동기**: Kafka(or SQS) + Worker
 - **모니터링**: Prometheus/Grafana + OpenTelemetry
 
-## 5) 빠른 시작 순서
+## 5) Python 개발 환경
+
+- **Python 3.11+** 권장 (`.python-version`에 3.12 명시)
+- 가상 환경 생성 후 `pip install -r requirements.txt`로 의존성 설치
+- 테스트: 프로젝트 루트에서 `pytest` 실행
+- 상세: [docs/development.md](docs/development.md) 참고
+
+## 6) 빠른 시작 순서
 
 1. `packages/data-pipeline`에서 서울시 API 커넥터 3종 구현
 2. `apps/api`에서 시설 검색/상세/리뷰 API 구축
