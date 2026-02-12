@@ -73,6 +73,28 @@ apiEventParkingMonitorWorker:
     repository: myacr.azurecr.io/integrated-care-api
     tag: latest
 
+kafkaTopicProvisioner:
+  enabled: true
+  topics:
+    - name: etl-raw-events
+      partitions: 6
+      replicationFactor: 3
+    - name: etl-normalized
+      partitions: 6
+      replicationFactor: 3
+    - name: etl-errors
+      partitions: 6
+      replicationFactor: 3
+    - name: api-events
+      partitions: 6
+      replicationFactor: 3
+    - name: api-events-dlq
+      partitions: 6
+      replicationFactor: 3
+    - name: api-events-parking
+      partitions: 6
+      replicationFactor: 3
+
 pipelineMonitoring:
   image:
     repository: myacr.azurecr.io/integrated-care-pipeline

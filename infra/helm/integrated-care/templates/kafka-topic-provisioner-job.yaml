@@ -1,0 +1,47 @@
+{{- if and .Values.kafkaTopicProvisioner.enabled .Values.dependencies.kafka.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "integrated-care.fullname" . }}-kafka-topic-provisioner
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "integrated-care.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app: kafka-topic-provisioner
+    spec:
+      restartPolicy: OnFailure
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: topic-provisioner
+          image: "{{ .Values.kafkaTopicProvisioner.image.repository }}:{{ .Values.kafkaTopicProvisioner.image.tag }}"
+          imagePullPolicy: {{ .Values.kafkaTopicProvisioner.image.pullPolicy }}
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              set -euo pipefail
+              BOOTSTRAP="${KAFKA_BOOTSTRAP_SERVERS}"
+              {{- range .Values.kafkaTopicProvisioner.topics }}
+              kafka-topics.sh \
+                --bootstrap-server "${BOOTSTRAP}" \
+                --create \
+                --if-not-exists \
+                --topic "{{ .name }}" \
+                --partitions "{{ .partitions }}" \
+                --replication-factor "{{ .replicationFactor }}"
+              {{- end }}
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: {{ include "integrated-care.kafkaBootstrapServers" . | quote }}
+{{- end }}

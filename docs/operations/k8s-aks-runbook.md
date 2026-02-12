@@ -8,7 +8,9 @@ This runbook defines a baseline deployment flow for Kubernetes and AKS.
 2. Data pipeline monitoring service (`python -m data_pipeline.monitoring`)
 3. ETL CronJob (`python -m data_pipeline.jobs`)
 4. API event consumer (`python -m api.event_consumer`)
-5. API event parking monitor (`python -m api.event_parking_monitor`)
+5. API event DLQ retry worker (`python -m api.event_dlq_retry`)
+6. API event parking monitor (`python -m api.event_parking_monitor`)
+7. Kafka topic provisioner hook job (Helm post-install/post-upgrade)
 
 ## Manifest Location
 
@@ -42,6 +44,8 @@ helm dependency update infra/helm/integrated-care
 helm upgrade --install integrated-care infra/helm/integrated-care \
   --namespace integrated-care --create-namespace
 ```
+
+If Kafka dependency is enabled, topic provisioning runs automatically through the Helm hook job.
 
 AKS image override example:
 

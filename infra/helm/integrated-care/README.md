@@ -10,6 +10,7 @@ Deploy:
 4. API event consumer worker (optional)
 5. API event DLQ retry worker (optional)
 6. API event parking monitor worker (optional)
+7. Kafka topic provisioner hook job (optional, recommended)
 
 and optionally pull open-source platform dependencies through Helm dependency management.
 
@@ -104,6 +105,13 @@ Key values:
 26. `pipelineMonitoring.pdb.enabled`, `pipelineMonitoring.pdb.minAvailable` (monitoring disruption budget)
 27. `scheduling.podAntiAffinity.*` (cross-node anti-affinity)
 28. `scheduling.topologySpread.*` (zone/node spread constraints)
+29. `kafkaTopicProvisioner.enabled` (create Kafka topics on install/upgrade)
+30. `kafkaTopicProvisioner.topics[]` (topic name/partitions/replicationFactor)
+
+## Kafka Topic Provisioner
+
+When `kafkaTopicProvisioner.enabled=true` and `dependencies.kafka.enabled=true`,
+Helm runs a post-install/post-upgrade hook job that creates required topics with `--if-not-exists`.
 
 ## AKS Example
 

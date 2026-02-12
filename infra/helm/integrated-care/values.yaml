@@ -129,6 +129,32 @@ apiEventParkingMonitorWorker:
       cpu: "500m"
       memory: "512Mi"
 
+kafkaTopicProvisioner:
+  enabled: true
+  image:
+    repository: bitnami/kafka
+    tag: "3.9.0"
+    pullPolicy: IfNotPresent
+  topics:
+    - name: etl-raw-events
+      partitions: 3
+      replicationFactor: 1
+    - name: etl-normalized
+      partitions: 3
+      replicationFactor: 1
+    - name: etl-errors
+      partitions: 3
+      replicationFactor: 1
+    - name: api-events
+      partitions: 3
+      replicationFactor: 1
+    - name: api-events-dlq
+      partitions: 3
+      replicationFactor: 1
+    - name: api-events-parking
+      partitions: 3
+      replicationFactor: 1
+
 pipelineMonitoring:
   enabled: true
   replicaCount: 1
