@@ -7,6 +7,7 @@ Deploy:
 1. API service
 2. Data pipeline monitoring service
 3. ETL CronJob worker
+4. API event consumer worker (optional)
 
 and optionally pull open-source platform dependencies through Helm dependency management.
 
@@ -71,6 +72,7 @@ Key values:
 8. `secret.KAFKA_BOOTSTRAP_SERVERS` (required when Kafka publish enabled)
 9. `config.API_CACHE_TTL_SECONDS` (API facility cache TTL)
 10. `config.PIPELINE_API_EVENT_PUBLISH_ENABLED` (emit `etl_completed` to `api-events`)
+11. `apiEventConsumer.enabled` (consume `api-events` and invalidate API cache)
 
 ## AKS Example
 

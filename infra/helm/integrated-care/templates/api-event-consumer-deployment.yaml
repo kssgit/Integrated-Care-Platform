@@ -1,0 +1,41 @@
+{{- if .Values.apiEventConsumer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "integrated-care.fullname" . }}-api-event-consumer
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "integrated-care.labels" . | nindent 4 }}
+    app: api-event-consumer
+spec:
+  replicas: {{ .Values.apiEventConsumer.replicaCount }}
+  selector:
+    matchLabels:
+      app: api-event-consumer
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: api-event-consumer
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: api-event-consumer
+          image: "{{ .Values.apiEventConsumer.image.repository }}:{{ .Values.apiEventConsumer.image.tag }}"
+          imagePullPolicy: {{ .Values.apiEventConsumer.image.pullPolicy }}
+          command: ["python", "-m", "api.event_consumer"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "integrated-care.fullname" . }}-config
+            {{- if .Values.secret.create }}
+            - secretRef:
+                name: {{ include "integrated-care.fullname" . }}-secret
+            {{- end }}
+          resources:
+            {{- toYaml .Values.apiEventConsumer.resources | nindent 12 }}
+{{- end }}
+

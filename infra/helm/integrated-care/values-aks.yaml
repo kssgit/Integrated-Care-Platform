@@ -23,6 +23,12 @@ api:
     maxReplicas: 30
     averageCpuUtilization: 60
 
+apiEventConsumer:
+  enabled: true
+  image:
+    repository: myacr.azurecr.io/integrated-care-api
+    tag: latest
+
 pipelineMonitoring:
   image:
     repository: myacr.azurecr.io/integrated-care-pipeline

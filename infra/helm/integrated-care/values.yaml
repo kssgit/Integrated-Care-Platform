@@ -51,6 +51,21 @@ api:
     maxReplicas: 20
     averageCpuUtilization: 65
 
+apiEventConsumer:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: ghcr.io/example/integrated-care-api
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
 pipelineMonitoring:
   enabled: true
   replicaCount: 1
