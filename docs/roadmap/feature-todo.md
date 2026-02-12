@@ -4,16 +4,14 @@ This file tracks functional development status.
 
 ## In Progress
 
-1. `trust-safety`: safe-number routing adapter (050 relay)
-2. `apps/api`: trust-safety API endpoints (router/service/repository split)
-3. `geo-engine`: route-risk scoring model and PostGIS integration adapter
+1. `geo-engine`: route-risk scoring model and PostGIS integration adapter
+2. `apps/api`: geo-engine API endpoints and caching strategy tuning
+3. `data-pipeline`: provider expansion (Gyeonggi/National adapters)
 
 ## Todo
 
-1. `apps/api`: geo-engine API endpoints and caching strategy tuning
-2. `data-pipeline`: provider expansion (Gyeonggi/National adapters)
-3. `data-pipeline`: ETL load path to production DB and quality checks
-4. `apps/web`: MVP integration screens for search, comparison, inquiry, review
+1. `data-pipeline`: ETL load path to production DB and quality checks
+2. `apps/web`: MVP integration screens for search, comparison, inquiry, review
 
 ## Done
 
@@ -25,3 +23,5 @@ This file tracks functional development status.
 6. Observability baseline (`/metrics`, tracing, ETL metrics exporter)
 7. `geo-engine` core calculations (distance, geofence, golden-time baseline)
 8. `trust-safety` baseline modules (resident verification, OCR receipt validation, robots policy)
+9. `trust-safety` safe-number routing adapter (050 relay)
+10. `apps/api` trust-safety API endpoint for safe-number routing
