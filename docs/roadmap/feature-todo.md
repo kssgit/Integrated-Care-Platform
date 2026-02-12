@@ -4,19 +4,16 @@ This file tracks functional development status.
 
 ## In Progress
 
-1. `trust-safety`: resident verification module (dong/geofence based)
-2. `trust-safety`: OCR receipt verification pipeline baseline
-3. `trust-safety`: robots policy validator for review ingestion
+1. `trust-safety`: safe-number routing adapter (050 relay)
+2. `apps/api`: trust-safety API endpoints (router/service/repository split)
+3. `geo-engine`: route-risk scoring model and PostGIS integration adapter
 
 ## Todo
 
-1. `geo-engine`: route-risk scoring model and PostGIS integration adapter
-2. `trust-safety`: safe-number routing adapter (050 relay)
-3. `apps/api`: trust-safety API endpoints (router/service/repository split)
-4. `apps/api`: geo-engine API endpoints and caching strategy tuning
-5. `data-pipeline`: provider expansion (Gyeonggi/National adapters)
-6. `data-pipeline`: ETL load path to production DB and quality checks
-7. `apps/web`: MVP integration screens for search, comparison, inquiry, review
+1. `apps/api`: geo-engine API endpoints and caching strategy tuning
+2. `data-pipeline`: provider expansion (Gyeonggi/National adapters)
+3. `data-pipeline`: ETL load path to production DB and quality checks
+4. `apps/web`: MVP integration screens for search, comparison, inquiry, review
 
 ## Done
 
@@ -27,3 +24,4 @@ This file tracks functional development status.
 5. Helm chart with optional OSS dependencies and AKS overrides
 6. Observability baseline (`/metrics`, tracing, ETL metrics exporter)
 7. `geo-engine` core calculations (distance, geofence, golden-time baseline)
+8. `trust-safety` baseline modules (resident verification, OCR receipt validation, robots policy)

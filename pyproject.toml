@@ -28,10 +28,20 @@ orchestration = [
 ]
 
 [tool.pytest.ini_options]
-pythonpath = ["apps/api/src", "packages/data-pipeline/src", "packages/geo-engine/src"]
+pythonpath = [
+    "apps/api/src",
+    "packages/data-pipeline/src",
+    "packages/geo-engine/src",
+    "packages/trust-safety/src",
+]
 addopts = "-p no:cacheprovider -v"
 asyncio_mode = "auto"
-testpaths = ["apps/api/tests", "packages/data-pipeline/tests", "packages/geo-engine/tests"]
+testpaths = [
+    "apps/api/tests",
+    "packages/data-pipeline/tests",
+    "packages/geo-engine/tests",
+    "packages/trust-safety/tests",
+]
 
 [tool.ruff]
 target-version = "py311"
@@ -40,9 +50,11 @@ src = [
     "apps/api/src",
     "packages/data-pipeline/src",
     "packages/geo-engine/src",
+    "packages/trust-safety/src",
     "apps/api/tests",
     "packages/data-pipeline/tests",
     "packages/geo-engine/tests",
+    "packages/trust-safety/tests",
 ]
 exclude = ["__pycache__", ".git"]
 
@@ -57,5 +69,10 @@ warn_unused_ignores = true
 disallow_untyped_defs = false
 
 [[tool.mypy.overrides]]
-path = ["apps/api/src", "packages/data-pipeline/src", "packages/geo-engine/src"]
+path = [
+    "apps/api/src",
+    "packages/data-pipeline/src",
+    "packages/geo-engine/src",
+    "packages/trust-safety/src",
+]
 disallow_untyped_defs = true
