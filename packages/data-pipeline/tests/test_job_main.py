@@ -26,8 +26,10 @@ def test_build_store_requires_database_url_for_postgres(monkeypatch) -> None:
 
 def test_build_store_uses_postgres_when_configured(monkeypatch) -> None:
     monkeypatch.setenv("DATABASE_URL", "postgresql://example")
+    monkeypatch.setenv("PIPELINE_DB_BATCH_SIZE", "2000")
     store = _build_store("postgres")
     assert isinstance(store, PostgresFacilityStore)
+    assert store._batch_size == 2000
 
 
 def test_provider_endpoint_path_returns_seoul_default_path() -> None:

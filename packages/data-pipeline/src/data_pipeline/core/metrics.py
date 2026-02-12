@@ -14,6 +14,7 @@ class InMemoryPipelineMetricsCollector:
         self.stage_durations: list[StageDuration] = []
         self.external_api_error_count = 0
         self.processed_records = 0
+        self.quality_rejected_records = 0
 
     def observe_stage_duration(self, stage: str, duration_ms: float) -> None:
         self.stage_durations.append(StageDuration(stage=stage, duration_ms=duration_ms))
@@ -24,3 +25,5 @@ class InMemoryPipelineMetricsCollector:
     def add_processed_records(self, count: int) -> None:
         self.processed_records += count
 
+    def add_quality_rejected_records(self, count: int) -> None:
+        self.quality_rejected_records += count

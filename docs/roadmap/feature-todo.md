@@ -8,8 +8,7 @@ This file tracks functional development status.
 
 ## Todo
 
-1. `data-pipeline`: ETL load path to production DB and quality checks
-2. `apps/web`: MVP integration screens for search, comparison, inquiry, review
+1. `apps/web`: MVP integration screens for search, comparison, inquiry, review
 
 ## Done
 
@@ -25,3 +24,4 @@ This file tracks functional development status.
 10. `apps/api` trust-safety API endpoint for safe-number routing
 11. `apps/api` geo-engine API endpoints (`distance`, `geofence`, `golden-time`) with cache integration
 12. `data-pipeline` provider expansion (`Gyeonggi/National` adapters, provider routing path)
+13. `data-pipeline` ETL production DB load hardening (batched upsert) and quality checks (reject ratio gate)

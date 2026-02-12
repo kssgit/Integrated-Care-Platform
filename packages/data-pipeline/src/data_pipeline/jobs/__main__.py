@@ -4,6 +4,7 @@ import asyncio
 import os
 
 from data_pipeline.core.pipeline import FacilityStore
+from data_pipeline.core.quality import FacilityQualityGate
 from data_pipeline.jobs.daily_sync import run_daily_sync
 from data_pipeline.jobs.events import publish_etl_completed_event
 from data_pipeline.jobs.extractor import ProviderFacilityExtractor
@@ -29,7 +30,8 @@ def _required_env(name: str) -> str:
 def _build_store(backend: str) -> FacilityStore:
     if backend == "postgres":
         dsn = _required_env("DATABASE_URL")
-        return PostgresFacilityStore(dsn=dsn)
+        batch_size = int(os.getenv("PIPELINE_DB_BATCH_SIZE", "1000"))
+        return PostgresFacilityStore(dsn=dsn, batch_size=batch_size)
     output_path = os.getenv("PIPELINE_OUTPUT_FILE", "runtime/facilities.jsonl")
     return JsonlFacilityStore(file_path=output_path)
 
@@ -67,6 +69,7 @@ def main() -> None:
     page_size = int(os.getenv("PIPELINE_PAGE_SIZE", "200"))
     start_page = int(os.getenv("PIPELINE_START_PAGE", "1"))
     end_page = int(os.getenv("PIPELINE_END_PAGE", "1"))
+    quality_max_reject_ratio = float(os.getenv("PIPELINE_QUALITY_MAX_REJECT_RATIO", "0.2"))
 
     extractor = ProviderFacilityExtractor(
         base_url=base_url,
@@ -78,7 +81,8 @@ def main() -> None:
     store = _build_store(backend=backend)
     store = _maybe_wrap_with_publisher(store)
     event_broker = _maybe_build_event_broker()
-    saved_count = asyncio.run(run_daily_sync(extractor=extractor, store=store))
+    quality_gate = FacilityQualityGate(max_reject_ratio=quality_max_reject_ratio)
+    saved_count = asyncio.run(run_daily_sync(extractor=extractor, store=store, quality_gate=quality_gate))
     if event_broker:
         asyncio.run(
             publish_etl_completed_event(

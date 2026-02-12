@@ -39,7 +39,7 @@ async def test_pipeline_collects_stage_metrics() -> None:
     assert "extract" in stages
     assert "validate" in stages
     assert "normalize" in stages
+    assert "quality" in stages
     assert "deduplicate" in stages
     assert "store" in stages
     assert "etl_total" in stages
-

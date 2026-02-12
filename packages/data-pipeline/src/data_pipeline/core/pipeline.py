@@ -9,6 +9,7 @@ from typing import Awaitable, Callable, Generic, TypeVar
 from data_pipeline.core.exceptions import ValidationError
 from data_pipeline.core.metrics import InMemoryPipelineMetricsCollector
 from data_pipeline.core.models import FacilityRecord
+from data_pipeline.core.quality import FacilityQualityGate
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -33,10 +34,12 @@ class ETLPipeline:
         extractor: Extractor[dict],
         store: FacilityStore,
         metrics: InMemoryPipelineMetricsCollector | None = None,
+        quality_gate: FacilityQualityGate | None = None,
     ) -> None:
         self._extractor = extractor
         self._store = store
         self._metrics = metrics
+        self._quality_gate = quality_gate or FacilityQualityGate()
 
     async def run(self) -> int:
         logger.info("etl_run_started", extra={"component": "data_pipeline"})
@@ -44,7 +47,10 @@ class ETLPipeline:
         extracted = await self._time_async("extract", self._extractor.extract)
         validated = [self._validate(item) for item in extracted]
         normalized = [self._normalize(item) for item in validated]
-        deduplicated = self._time_sync("deduplicate", lambda: list(self._deduplicate(normalized)))
+        quality_result = self._time_sync("quality", lambda: self._quality_gate.filter_or_raise(normalized))
+        if self._metrics:
+            self._metrics.add_quality_rejected_records(quality_result.rejected_count)
+        deduplicated = self._time_sync("deduplicate", lambda: list(self._deduplicate(quality_result.accepted)))
         saved_count = await self._time_async("store", lambda: self._store.upsert_many(deduplicated))
         self._observe("etl_total", (perf_counter() - total_started) * 1000.0)
         if self._metrics:

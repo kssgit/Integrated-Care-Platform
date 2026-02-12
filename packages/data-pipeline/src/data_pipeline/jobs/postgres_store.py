@@ -25,9 +25,13 @@ class PostgresFacilityStore(FacilityStore):
     def __init__(
         self,
         dsn: str,
+        batch_size: int = 1000,
         pool_factory: Callable[[str], Awaitable[Any]] | None = None,
     ) -> None:
+        if batch_size <= 0:
+            raise ValueError("batch_size must be > 0")
         self._dsn = dsn
+        self._batch_size = batch_size
         self._pool = None
         self._pool_factory = pool_factory
 
@@ -35,8 +39,10 @@ class PostgresFacilityStore(FacilityStore):
         if not records:
             return 0
         pool = await self._get_pool()
-        values = [self._to_row(record) for record in records]
-        await pool.executemany(UPSERT_SQL, values)
+        for start in range(0, len(records), self._batch_size):
+            batch = records[start : start + self._batch_size]
+            values = [self._to_row(record) for record in batch]
+            await pool.executemany(UPSERT_SQL, values)
         return len(records)
 
     async def _get_pool(self) -> Any:
