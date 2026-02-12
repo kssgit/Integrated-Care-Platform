@@ -1,0 +1,17 @@
+{{- if and .Values.pipelineMonitoring.enabled .Values.pipelineMonitoring.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "integrated-care.fullname" . }}-pipeline-monitoring
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "integrated-care.labels" . | nindent 4 }}
+    app: pipeline-monitoring
+spec:
+  minAvailable: {{ .Values.pipelineMonitoring.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app: pipeline-monitoring
+      app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+

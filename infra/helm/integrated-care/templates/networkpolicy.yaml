@@ -1,0 +1,40 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "integrated-care.fullname" . }}-default
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "integrated-care.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes:
+    - Ingress
+    - Egress
+  {{- if .Values.networkPolicy.allowSameNamespaceIngress }}
+  ingress:
+    - from:
+        - podSelector: {}
+  {{- else }}
+  ingress: []
+  {{- end }}
+  {{- if or .Values.networkPolicy.allowDnsEgress .Values.networkPolicy.egressAllowAll }}
+  egress:
+    {{- if .Values.networkPolicy.allowDnsEgress }}
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    {{- end }}
+    {{- if .Values.networkPolicy.egressAllowAll }}
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+    {{- end }}
+  {{- else }}
+  egress: []
+  {{- end }}
+{{- end }}

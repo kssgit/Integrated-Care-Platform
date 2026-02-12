@@ -27,6 +27,7 @@ Helm chart is under:
 3. `API_HOST`, `API_PORT`
 4. `PIPELINE_MONITORING_HOST`, `PIPELINE_MONITORING_PORT`
 5. `DATABASE_URL` (auto-generated when Helm PostgreSQL dependency is enabled and value is empty)
+6. `KAFKA_BOOTSTRAP_SERVERS` (auto-generated when Helm Kafka dependency is enabled and value is empty)
 
 ## Apply to Cluster
 
@@ -73,6 +74,7 @@ helm upgrade --install integrated-care infra/helm/integrated-care \
 2. Readiness: `/readyz`
 3. Metrics: `/metrics`
 4. API HPA: CPU target 65%, min 2, max 20
+5. Optional hardening: `networkPolicy.enabled=true`, API/Pipeline `pdb.enabled=true`
 
 ## AKS Notes
 

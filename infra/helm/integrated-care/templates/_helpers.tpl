@@ -26,3 +26,23 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- "" -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "integrated-care.redisUrl" -}}
+{{- if .Values.secret.REDIS_URL -}}
+{{- .Values.secret.REDIS_URL -}}
+{{- else if .Values.dependencies.redis.enabled -}}
+{{- printf "redis://%s-redis-master:6379/0" .Release.Name -}}
+{{- else -}}
+{{- "" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "integrated-care.kafkaBootstrapServers" -}}
+{{- if .Values.secret.KAFKA_BOOTSTRAP_SERVERS -}}
+{{- .Values.secret.KAFKA_BOOTSTRAP_SERVERS -}}
+{{- else if .Values.dependencies.kafka.enabled -}}
+{{- printf "%s-kafka:9092" .Release.Name -}}
+{{- else -}}
+{{- "" -}}
+{{- end -}}
+{{- end -}}

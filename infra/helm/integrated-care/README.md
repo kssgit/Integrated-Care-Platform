@@ -50,6 +50,18 @@ then `DATABASE_URL` is auto-generated from `postgresql.auth.*` values:
 
 `postgresql://<username>:<password>@<release-name>-postgresql:5432/<database>`
 
+## Redis/Kafka Auto Wiring
+
+If:
+
+1. `secret.REDIS_URL=""` and `dependencies.redis.enabled=true`
+2. `secret.KAFKA_BOOTSTRAP_SERVERS=""` and `dependencies.kafka.enabled=true`
+
+then these are auto-generated:
+
+1. `REDIS_URL=redis://<release-name>-redis-master:6379/0`
+2. `KAFKA_BOOTSTRAP_SERVERS=<release-name>-kafka:9092`
+
 ## Install
 
 ```bash
@@ -87,6 +99,9 @@ Key values:
 21. `config.PARKING_ALERT_THRESHOLD` (alert threshold per window)
 22. `config.PARKING_ALERT_WINDOW_SECONDS` (window size in seconds)
 23. `config.PARKING_ALERT_COOLDOWN_SECONDS` (minimum seconds between alerts)
+24. `networkPolicy.enabled` (namespace-scoped network policy)
+25. `api.pdb.enabled`, `api.pdb.minAvailable` (API disruption budget)
+26. `pipelineMonitoring.pdb.enabled`, `pipelineMonitoring.pdb.minAvailable` (monitoring disruption budget)
 
 ## AKS Example
 
