@@ -4,6 +4,11 @@ global:
 imagePullSecrets:
   - name: acr-pull-secret
 
+config:
+  PIPELINE_STORE_BACKEND: "postgres"
+  PIPELINE_KAFKA_PUBLISH_ENABLED: "true"
+  PIPELINE_PROVIDER_NAME: "seoul_open_data"
+
 api:
   image:
     repository: myacr.azurecr.io/integrated-care-api
@@ -50,6 +55,8 @@ ingress:
 secret:
   create: true
   REDIS_URL: redis://integrated-care-redis-master:6379/0
+  DATABASE_URL: ""
+  KAFKA_BOOTSTRAP_SERVERS: integrated-care-kafka:9092
   FACILITY_PROVIDER_BASE_URL: https://provider.example.com
 
 serviceMonitor:
@@ -57,6 +64,8 @@ serviceMonitor:
   interval: 15s
 
 dependencies:
+  postgresql:
+    enabled: false
   redis:
     enabled: true
   kafka:

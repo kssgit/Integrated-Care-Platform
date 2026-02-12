@@ -12,6 +12,7 @@ and optionally pull open-source platform dependencies through Helm dependency ma
 
 ## Optional Dependencies
 
+1. PostgreSQL (`bitnami/postgresql`)
 1. Redis (`bitnami/redis`)
 2. Kafka (`bitnami/kafka`)
 3. Prometheus stack (`prometheus-community/kube-prometheus-stack`)
@@ -23,6 +24,8 @@ Configure in `values.yaml`:
 
 ```yaml
 dependencies:
+  postgresql:
+    enabled: false
   redis:
     enabled: true
   kafka:
@@ -32,6 +35,17 @@ dependencies:
   airflow:
     enabled: false
 ```
+
+## PostgreSQL Auto Wiring
+
+If:
+
+1. `dependencies.postgresql.enabled=true`
+2. `secret.DATABASE_URL=""`
+
+then `DATABASE_URL` is auto-generated from `postgresql.auth.*` values:
+
+`postgresql://<username>:<password>@<release-name>-postgresql:5432/<database>`
 
 ## Install
 
@@ -51,6 +65,10 @@ Key values:
 2. `config.PIPELINE_START_PAGE`
 3. `config.PIPELINE_END_PAGE`
 4. `config.PIPELINE_OUTPUT_FILE`
+5. `config.PIPELINE_STORE_BACKEND` (`jsonl` or `postgres`)
+6. `config.PIPELINE_KAFKA_PUBLISH_ENABLED` (`true` or `false`)
+7. `secret.DATABASE_URL` (required for `postgres`)
+8. `secret.KAFKA_BOOTSTRAP_SERVERS` (required when Kafka publish enabled)
 
 ## AKS Example
 

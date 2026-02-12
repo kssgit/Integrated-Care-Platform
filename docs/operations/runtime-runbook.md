@@ -51,6 +51,17 @@ PIPELINE_START_PAGE=1 PIPELINE_END_PAGE=1 \
 ./scripts/run-data-pipeline-job.sh
 ```
 
+PostgreSQL + Kafka example:
+
+```bash
+FACILITY_PROVIDER_BASE_URL=https://provider.example.com \
+PIPELINE_STORE_BACKEND=postgres \
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/integrated_care \
+PIPELINE_KAFKA_PUBLISH_ENABLED=true \
+KAFKA_BOOTSTRAP_SERVERS=localhost:9092 \
+./scripts/run-data-pipeline-job.sh
+```
+
 ## Run Tests
 
 ```bash

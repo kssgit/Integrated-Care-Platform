@@ -10,6 +10,9 @@ config:
   API_PORT: "8000"
   PIPELINE_MONITORING_HOST: "0.0.0.0"
   PIPELINE_MONITORING_PORT: "8001"
+  PIPELINE_STORE_BACKEND: "jsonl"
+  PIPELINE_KAFKA_PUBLISH_ENABLED: "false"
+  PIPELINE_PROVIDER_NAME: "seoul_open_data"
   PIPELINE_OUTPUT_FILE: "runtime/facilities.jsonl"
   PIPELINE_PAGE_SIZE: "200"
   PIPELINE_START_PAGE: "1"
@@ -18,6 +21,8 @@ config:
 secret:
   create: true
   REDIS_URL: "redis://redis-master:6379/0"
+  DATABASE_URL: ""
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
   FACILITY_PROVIDER_BASE_URL: "https://provider.example.com"
 
 api:
@@ -99,6 +104,8 @@ ingress:
   tls: []
 
 dependencies:
+  postgresql:
+    enabled: false
   redis:
     enabled: true
   kafka:
@@ -107,3 +114,9 @@ dependencies:
     enabled: false
   airflow:
     enabled: false
+
+postgresql:
+  auth:
+    username: postgres
+    password: postgres
+    database: integrated_care

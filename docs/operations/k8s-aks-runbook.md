@@ -24,6 +24,7 @@ Helm chart is under:
 2. `FACILITY_PROVIDER_BASE_URL`
 3. `API_HOST`, `API_PORT`
 4. `PIPELINE_MONITORING_HOST`, `PIPELINE_MONITORING_PORT`
+5. `DATABASE_URL` (auto-generated when Helm PostgreSQL dependency is enabled and value is empty)
 
 ## Apply to Cluster
 

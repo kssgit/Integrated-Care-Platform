@@ -10,4 +10,10 @@ data:
   API_PORT: {{ .Values.config.API_PORT | quote }}
   PIPELINE_MONITORING_HOST: {{ .Values.config.PIPELINE_MONITORING_HOST | quote }}
   PIPELINE_MONITORING_PORT: {{ .Values.config.PIPELINE_MONITORING_PORT | quote }}
-
+  PIPELINE_STORE_BACKEND: {{ .Values.config.PIPELINE_STORE_BACKEND | quote }}
+  PIPELINE_KAFKA_PUBLISH_ENABLED: {{ .Values.config.PIPELINE_KAFKA_PUBLISH_ENABLED | quote }}
+  PIPELINE_PROVIDER_NAME: {{ .Values.config.PIPELINE_PROVIDER_NAME | quote }}
+  PIPELINE_OUTPUT_FILE: {{ .Values.config.PIPELINE_OUTPUT_FILE | quote }}
+  PIPELINE_PAGE_SIZE: {{ .Values.config.PIPELINE_PAGE_SIZE | quote }}
+  PIPELINE_START_PAGE: {{ .Values.config.PIPELINE_START_PAGE | quote }}
+  PIPELINE_END_PAGE: {{ .Values.config.PIPELINE_END_PAGE | quote }}
