@@ -64,7 +64,6 @@ spec:
           imagePullPolicy: {{ .Values.apiEventConsumer.image.pullPolicy }}
           securityContext:
             {{- toYaml .Values.security.containerSecurityContext | nindent 12 }}
-          command: ["python", "-m", "api.event_consumer"]
           envFrom:
             - configMapRef:
                 name: {{ include "integrated-care.fullname" . }}-config

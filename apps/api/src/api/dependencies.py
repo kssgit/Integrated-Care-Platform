@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import os
 
+from geo_engine.postgis_adapter import PostGISAdapter
+
 from api.cache import FacilityCache, InMemoryCacheStore, RedisCacheStore
 from api.circuit_breaker import CircuitBreaker
 from api.clients.facility_provider_client import FacilityProviderClient
@@ -23,7 +25,9 @@ else:
     _facility_repository = FacilityRepository()
 
 _facility_service = FacilityService(_facility_repository)
-_geo_service = GeoService()
+database_url = os.getenv("DATABASE_URL")
+_geo_postgis_adapter = PostGISAdapter(dsn=database_url) if database_url else None
+_geo_service = GeoService(postgis_adapter=_geo_postgis_adapter)
 safe_number_provider_base_url = os.getenv("SAFE_NUMBER_PROVIDER_BASE_URL")
 if safe_number_provider_base_url:
     _safe_number_repository = SafeNumberRepository(

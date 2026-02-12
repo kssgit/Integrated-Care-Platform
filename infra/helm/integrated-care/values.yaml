@@ -110,7 +110,7 @@ apiEventConsumer:
   enabled: false
   replicaCount: 1
   image:
-    repository: ghcr.io/example/integrated-care-api
+    repository: ghcr.io/example/integrated-care-api-event-consumer
     tag: latest
     pullPolicy: IfNotPresent
   resources:
@@ -125,7 +125,7 @@ apiEventDlqRetryWorker:
   enabled: false
   replicaCount: 1
   image:
-    repository: ghcr.io/example/integrated-care-api
+    repository: ghcr.io/example/integrated-care-api-event-dlq-retry
     tag: latest
     pullPolicy: IfNotPresent
   resources:
@@ -140,7 +140,7 @@ apiEventParkingMonitorWorker:
   enabled: false
   replicaCount: 1
   image:
-    repository: ghcr.io/example/integrated-care-api
+    repository: ghcr.io/example/integrated-care-api-event-parking-monitor
     tag: latest
     pullPolicy: IfNotPresent
   resources:
@@ -181,7 +181,7 @@ pipelineMonitoring:
   enabled: true
   replicaCount: 1
   image:
-    repository: ghcr.io/example/integrated-care-pipeline
+    repository: ghcr.io/example/integrated-care-pipeline-monitoring
     tag: latest
     pullPolicy: IfNotPresent
   service:
@@ -206,7 +206,7 @@ etlCronJob:
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 3
   image:
-    repository: ghcr.io/example/integrated-care-pipeline
+    repository: ghcr.io/example/integrated-care-pipeline-etl
     tag: latest
     pullPolicy: IfNotPresent
   resources:

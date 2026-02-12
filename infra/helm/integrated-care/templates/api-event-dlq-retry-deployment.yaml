@@ -64,7 +64,6 @@ spec:
           imagePullPolicy: {{ .Values.apiEventDlqRetryWorker.image.pullPolicy }}
           securityContext:
             {{- toYaml .Values.security.containerSecurityContext | nindent 12 }}
-          command: ["python", "-m", "api.event_dlq_retry"]
           envFrom:
             - configMapRef:
                 name: {{ include "integrated-care.fullname" . }}-config

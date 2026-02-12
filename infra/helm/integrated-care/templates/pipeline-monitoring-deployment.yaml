@@ -64,7 +64,6 @@ spec:
           imagePullPolicy: {{ .Values.pipelineMonitoring.image.pullPolicy }}
           securityContext:
             {{- toYaml .Values.security.containerSecurityContext | nindent 12 }}
-          command: ["python", "-m", "data_pipeline.monitoring"]
           ports:
             - name: http
               containerPort: {{ .Values.pipelineMonitoring.service.targetPort }}

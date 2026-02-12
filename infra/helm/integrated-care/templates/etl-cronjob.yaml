@@ -34,7 +34,6 @@ spec:
               imagePullPolicy: {{ .Values.etlCronJob.image.pullPolicy }}
               securityContext:
                 {{- toYaml .Values.security.containerSecurityContext | nindent 16 }}
-              command: ["python", "-m", "data_pipeline.jobs"]
               envFrom:
                 - configMapRef:
                     name: {{ include "integrated-care.fullname" . }}-config

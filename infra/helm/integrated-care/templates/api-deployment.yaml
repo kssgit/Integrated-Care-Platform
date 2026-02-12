@@ -64,7 +64,6 @@ spec:
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
           securityContext:
             {{- toYaml .Values.security.containerSecurityContext | nindent 12 }}
-          command: ["python", "-m", "api"]
           ports:
             - name: http
               containerPort: {{ .Values.api.service.targetPort }}

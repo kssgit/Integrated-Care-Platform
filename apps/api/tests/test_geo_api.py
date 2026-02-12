@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from api.app import create_app
 from api.cache import FacilityCache, InMemoryCacheStore
 from api.dependencies import get_facility_cache, get_geo_service
-from api.schemas.geo import GeoDistanceResult
+from api.schemas.geo import GeoDistanceResult, GeoNearestFacilitiesResult, GeoNearestFacilityItem
 
 
 class CountingGeoService:
@@ -40,6 +40,37 @@ class CountingGeoService:
         _critical_minutes: float,
     ):
         raise AssertionError("golden_time_score should not be called in this test")
+
+    async def route_risk_score(
+        self,
+        _traffic_level: float,
+        _incident_count: int,
+        _weather_severity: float,
+        _vulnerable_zone_overlap: float,
+        _golden_time_score: float | None,
+    ):
+        raise AssertionError("route_risk_score should not be called in this test")
+
+    async def nearest_facilities(
+        self,
+        center_lat: float,
+        center_lng: float,
+        limit: int,
+        district_code: str | None,
+    ) -> GeoNearestFacilitiesResult:
+        _ = (center_lat, center_lng, limit, district_code)
+        return GeoNearestFacilitiesResult(
+            items=[
+                GeoNearestFacilityItem(
+                    source_id="A1",
+                    name="Center A",
+                    district_code="11110",
+                    lat=37.57,
+                    lng=126.98,
+                    distance_meters=120.5,
+                )
+            ]
+        )
 
 
 def test_geo_distance_response_shape() -> None:
@@ -101,3 +132,32 @@ def test_geo_distance_uses_cache_for_same_query() -> None:
     assert first.status_code == 200
     assert second.status_code == 200
     assert service.distance_calls == 1
+
+
+def test_geo_route_risk_response_shape() -> None:
+    client = TestClient(create_app())
+    response = client.get(
+        "/v1/geo/route-risk?traffic_level=0.6&incident_count=2&weather_severity=0.3&vulnerable_zone_overlap=0.2"
+    )
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["success"] is True
+    assert 0 <= body["data"]["score"] <= 100
+    assert body["data"]["level"] in {"LOW", "MEDIUM", "HIGH", "CRITICAL"}
+
+
+def test_geo_nearest_facilities_response_shape() -> None:
+    app = create_app()
+    service = CountingGeoService()
+    cache = FacilityCache(store=InMemoryCacheStore(), ttl_seconds=60)
+    app.dependency_overrides[get_geo_service] = lambda: service
+    app.dependency_overrides[get_facility_cache] = lambda: cache
+    client = TestClient(app)
+    response = client.get("/v1/geo/nearest-facilities?center_lat=37.5665&center_lng=126.9780&limit=5")
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["success"] is True
+    assert len(body["data"]["items"]) == 1
+    assert body["data"]["items"][0]["source_id"] == "A1"

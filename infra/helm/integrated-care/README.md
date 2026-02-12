@@ -130,5 +130,24 @@ helm upgrade --install integrated-care infra/helm/integrated-care \
   --namespace integrated-care --create-namespace \
   -f infra/helm/integrated-care/values-aks.yaml \
   --set api.image.tag=<TAG> \
+  --set apiEventConsumer.image.tag=<TAG> \
+  --set apiEventDlqRetryWorker.image.tag=<TAG> \
+  --set apiEventParkingMonitorWorker.image.tag=<TAG> \
+  --set etlCronJob.image.tag=<TAG> \
   --set pipelineMonitoring.image.tag=<TAG>
 ```
+
+## Service Dockerfiles
+
+Build each runtime image from its service-specific Dockerfile:
+
+```bash
+docker build -f apps/api/Dockerfile.api -t <REGISTRY>/integrated-care-api:<TAG> .
+docker build -f apps/api/Dockerfile.event-consumer -t <REGISTRY>/integrated-care-api-event-consumer:<TAG> .
+docker build -f apps/api/Dockerfile.event-dlq-retry -t <REGISTRY>/integrated-care-api-event-dlq-retry:<TAG> .
+docker build -f apps/api/Dockerfile.event-parking-monitor -t <REGISTRY>/integrated-care-api-event-parking-monitor:<TAG> .
+docker build -f packages/data-pipeline/Dockerfile.etl -t <REGISTRY>/integrated-care-pipeline-etl:<TAG> .
+docker build -f packages/data-pipeline/Dockerfile.monitoring -t <REGISTRY>/integrated-care-pipeline-monitoring:<TAG> .
+```
+
+Helm workloads use image default `CMD` from these Dockerfiles.

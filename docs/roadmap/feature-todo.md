@@ -26,3 +26,4 @@ This file tracks functional development status.
 12. `data-pipeline` provider expansion (`Gyeonggi/National` adapters, provider routing path)
 13. `data-pipeline` ETL production DB load hardening (batched upsert) and quality checks (reject ratio gate)
 14. `geo-engine` route-risk scoring model and PostGIS integration adapter
+15. `apps/api` geo endpoints expansion (`route-risk`, `nearest-facilities`) with geo-engine delegation

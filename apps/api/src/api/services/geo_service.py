@@ -4,11 +4,23 @@ from geo_engine.distance import haversine_distance_meters
 from geo_engine.geofence import is_point_inside_radius
 from geo_engine.golden_time import calculate_golden_time_score
 from geo_engine.models import GeoPoint
+from geo_engine.postgis_adapter import PostGISAdapter
+from geo_engine.route_risk import RouteRiskFactors, calculate_route_risk_score, classify_route_risk
 
-from api.schemas.geo import GeoDistanceResult, GeoGeofenceResult, GeoGoldenTimeResult
+from api.schemas.geo import (
+    GeoDistanceResult,
+    GeoGeofenceResult,
+    GeoGoldenTimeResult,
+    GeoNearestFacilitiesResult,
+    GeoNearestFacilityItem,
+    GeoRouteRiskResult,
+)
 
 
 class GeoService:
+    def __init__(self, postgis_adapter: PostGISAdapter | None = None) -> None:
+        self._postgis_adapter = postgis_adapter
+
     async def distance_meters(
         self,
         origin_lat: float,
@@ -53,3 +65,39 @@ class GeoService:
             critical_minutes=critical_minutes,
         )
         return GeoGoldenTimeResult(estimated_minutes=estimated_minutes, score=score)
+
+    async def route_risk_score(
+        self,
+        traffic_level: float,
+        incident_count: int,
+        weather_severity: float,
+        vulnerable_zone_overlap: float,
+        golden_time_score: float | None,
+    ) -> GeoRouteRiskResult:
+        factors = RouteRiskFactors(
+            traffic_level=traffic_level,
+            incident_count=incident_count,
+            weather_severity=weather_severity,
+            vulnerable_zone_overlap=vulnerable_zone_overlap,
+        )
+        score = calculate_route_risk_score(factors=factors, golden_time_score=golden_time_score)
+        level = classify_route_risk(score)
+        return GeoRouteRiskResult(score=score, level=level)
+
+    async def nearest_facilities(
+        self,
+        center_lat: float,
+        center_lng: float,
+        limit: int,
+        district_code: str | None,
+    ) -> GeoNearestFacilitiesResult:
+        if self._postgis_adapter is None:
+            raise RuntimeError("postgis adapter is not configured")
+        items = await self._postgis_adapter.nearest_facilities(
+            center=GeoPoint(lat=center_lat, lng=center_lng),
+            limit=limit,
+            district_code=district_code,
+        )
+        return GeoNearestFacilitiesResult(
+            items=[GeoNearestFacilityItem(**item) for item in items],
+        )

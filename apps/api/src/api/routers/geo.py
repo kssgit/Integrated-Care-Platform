@@ -147,3 +147,64 @@ async def golden_time_score(
             critical_minutes,
         ),
     )
+
+
+@router.get("/route-risk")
+async def route_risk(
+    request: Request,
+    traffic_level: float = Query(..., ge=0, le=1),
+    incident_count: int = Query(default=0, ge=0),
+    weather_severity: float = Query(..., ge=0, le=1),
+    vulnerable_zone_overlap: float = Query(..., ge=0, le=1),
+    golden_time_score: float | None = Query(default=None, ge=0, le=100),
+    service: GeoService = Depends(get_geo_service),
+    rate_limiter: SlidingWindowRateLimiter = Depends(get_rate_limiter),
+    circuit_breaker: CircuitBreaker = Depends(get_circuit_breaker),
+    cache: FacilityCache = Depends(get_facility_cache),
+) -> dict:
+    cache_key = (
+        f"geo:route-risk:{traffic_level}:{incident_count}:{weather_severity}:"
+        f"{vulnerable_zone_overlap}:{golden_time_score}"
+    )
+    return await _call_with_guards(
+        request=request,
+        cache=cache,
+        rate_limiter=rate_limiter,
+        circuit_breaker=circuit_breaker,
+        cache_key=cache_key,
+        action=lambda: service.route_risk_score(
+            traffic_level=traffic_level,
+            incident_count=incident_count,
+            weather_severity=weather_severity,
+            vulnerable_zone_overlap=vulnerable_zone_overlap,
+            golden_time_score=golden_time_score,
+        ),
+    )
+
+
+@router.get("/nearest-facilities")
+async def nearest_facilities(
+    request: Request,
+    center_lat: float = Query(..., ge=-90, le=90),
+    center_lng: float = Query(..., ge=-180, le=180),
+    limit: int = Query(default=5, ge=1, le=100),
+    district_code: str | None = None,
+    service: GeoService = Depends(get_geo_service),
+    rate_limiter: SlidingWindowRateLimiter = Depends(get_rate_limiter),
+    circuit_breaker: CircuitBreaker = Depends(get_circuit_breaker),
+    cache: FacilityCache = Depends(get_facility_cache),
+) -> dict:
+    cache_key = f"geo:nearest:{center_lat}:{center_lng}:{limit}:{district_code or '*'}"
+    return await _call_with_guards(
+        request=request,
+        cache=cache,
+        rate_limiter=rate_limiter,
+        circuit_breaker=circuit_breaker,
+        cache_key=cache_key,
+        action=lambda: service.nearest_facilities(
+            center_lat=center_lat,
+            center_lng=center_lng,
+            limit=limit,
+            district_code=district_code,
+        ),
+    )
