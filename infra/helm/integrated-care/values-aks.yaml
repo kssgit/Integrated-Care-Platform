@@ -5,6 +5,7 @@ imagePullSecrets:
   - name: acr-pull-secret
 
 config:
+  API_CACHE_TTL_SECONDS: "45"
   PIPELINE_STORE_BACKEND: "postgres"
   PIPELINE_KAFKA_PUBLISH_ENABLED: "true"
   PIPELINE_PROVIDER_NAME: "seoul_open_data"

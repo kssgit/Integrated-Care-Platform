@@ -1,14 +1,27 @@
 from fastapi.testclient import TestClient
 
 from api.app import create_app
+from api.cache import FacilityCache, InMemoryCacheStore
 from api.circuit_breaker import CircuitBreaker
-from api.dependencies import get_circuit_breaker, get_facility_service, get_rate_limiter
+from api.dependencies import get_circuit_breaker, get_facility_cache, get_facility_service, get_rate_limiter
 from api.rate_limit import InMemoryRateLimitStore, SlidingWindowRateLimiter
+from api.schemas.facility import FacilityItem
 
 
 class FailingService:
     async def list_facilities(self, _query):
         raise RuntimeError("provider failed")
+
+
+class CountingService:
+    def __init__(self) -> None:
+        self.called = 0
+
+    async def list_facilities(self, query):
+        self.called += 1
+        start = (query.page - 1) * query.page_size + 1
+        item = FacilityItem(id=f"fac-{start}", name="Cached Center", district_code="11110")
+        return [item], 1
 
 
 def test_health_endpoint_response_shape() -> None:
@@ -62,6 +75,10 @@ def test_facilities_rate_limit_error_format() -> None:
 def test_facilities_upstream_failure_is_isolated() -> None:
     app = create_app()
     app.dependency_overrides[get_facility_service] = lambda: FailingService()
+    app.dependency_overrides[get_facility_cache] = lambda: FacilityCache(
+        store=InMemoryCacheStore(),
+        ttl_seconds=60,
+    )
     app.dependency_overrides[get_circuit_breaker] = lambda: CircuitBreaker(
         failure_threshold=3,
         recovery_timeout_seconds=30,
@@ -80,3 +97,22 @@ def test_facilities_validation_error_shape() -> None:
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+def test_facilities_uses_cache_for_same_query() -> None:
+    app = create_app()
+    service = CountingService()
+    cache = FacilityCache(
+        store=InMemoryCacheStore(),
+        ttl_seconds=60,
+    )
+    app.dependency_overrides[get_facility_service] = lambda: service
+    app.dependency_overrides[get_facility_cache] = lambda: cache
+    client = TestClient(app)
+
+    first = client.get("/v1/facilities?page=1&page_size=1&district_code=11110")
+    second = client.get("/v1/facilities?page=1&page_size=1&district_code=11110")
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert service.called == 1

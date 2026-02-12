@@ -5,8 +5,9 @@ import time
 
 from fastapi import APIRouter, Depends, Query, Request
 
+from api.cache import FacilityCache
 from api.circuit_breaker import CircuitBreaker, CircuitOpenError
-from api.dependencies import get_circuit_breaker, get_facility_service, get_rate_limiter
+from api.dependencies import get_circuit_breaker, get_facility_cache, get_facility_service, get_rate_limiter
 from api.errors import ApiError
 from api.rate_limit import SlidingWindowRateLimiter
 from api.response import success_response
@@ -34,6 +35,7 @@ async def list_facilities(
     service: FacilityService = Depends(get_facility_service),
     rate_limiter: SlidingWindowRateLimiter = Depends(get_rate_limiter),
     circuit_breaker: CircuitBreaker = Depends(get_circuit_breaker),
+    cache: FacilityCache = Depends(get_facility_cache),
 ) -> dict:
     now = time.time()
     client_key = _resolve_client_key(request)
@@ -42,6 +44,11 @@ async def list_facilities(
         raise ApiError("RATE_LIMIT_EXCEEDED", "Too many requests", 429)
 
     query = FacilityListQuery(page=page, page_size=page_size, district_code=district_code)
+    cache_key = f"facilities:{page}:{page_size}:{district_code or '*'}"
+    cached = await cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     try:
         items, total = await asyncio.wait_for(
             circuit_breaker.call(lambda: service.list_facilities(query), now_seconds=now),
@@ -57,4 +64,6 @@ async def list_facilities(
         raise ApiError("UPSTREAM_FAILURE", "Upstream request failed", 502) from exc
 
     meta = {"page": page, "page_size": page_size, "total": total}
-    return success_response([item.model_dump() for item in items], meta=meta)
+    payload = success_response([item.model_dump() for item in items], meta=meta)
+    await cache.set(cache_key, payload)
+    return payload

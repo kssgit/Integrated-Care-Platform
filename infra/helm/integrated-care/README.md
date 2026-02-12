@@ -69,6 +69,7 @@ Key values:
 6. `config.PIPELINE_KAFKA_PUBLISH_ENABLED` (`true` or `false`)
 7. `secret.DATABASE_URL` (required for `postgres`)
 8. `secret.KAFKA_BOOTSTRAP_SERVERS` (required when Kafka publish enabled)
+9. `config.API_CACHE_TTL_SECONDS` (API facility cache TTL)
 
 ## AKS Example
 
