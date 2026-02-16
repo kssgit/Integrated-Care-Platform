@@ -4,7 +4,7 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PYTHONPATH=/app/packages/data-pipeline/src:/app/packages/shared/src
+    PYTHONPATH=/app/packages/data-pipeline/src:/app/packages/shared/src:/app/packages/devkit/src
 
 WORKDIR /app
 
@@ -17,6 +17,7 @@ RUN pip install --upgrade pip \
 
 COPY packages/data-pipeline/src /app/packages/data-pipeline/src
 COPY packages/shared/src /app/packages/shared/src
+COPY packages/devkit/src /app/packages/devkit/src
 
 USER appuser
 EXPOSE 8001

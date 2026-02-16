@@ -15,8 +15,12 @@
 ```text
 .
 ├── apps
-│   ├── admin/                # 운영 콘솔(시설 심사, 리뷰 모더레이션, 광고 관리)
-│   └── api/                  # BFF/API 서버(검색, 매칭, 리뷰, 인증)
+│   ├── api/                  # 외부 진입 BFF/API
+│   ├── auth-service/         # 인증/토큰 발급
+│   ├── user-service/         # 사용자/선호도
+│   ├── facility-service/     # 시설 데이터 원천 서비스
+│   ├── search-service/       # 검색 인덱스 서비스
+│   └── admin/                # 운영 콘솔(후순위)
 ├── packages
 │   ├── data-pipeline/        # 서울시/외부 API 수집-정제-적재(ETL)
 │   ├── devkit/               # 서비스 공통 런타임(DB/Redis/Kafka/설정/관측)

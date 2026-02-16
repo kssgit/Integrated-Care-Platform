@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from devkit.observability import configure_otel
+from devkit.observability import configure_otel, configure_probe_access_log_filter
 from fastapi import FastAPI, HTTPException, Query
 
 from shared.security import validate_search_input
@@ -16,6 +16,7 @@ def success_response(data: object, meta: dict[str, object] | None = None) -> dic
 def create_app() -> FastAPI:
     app = FastAPI(title="Facility Service", version="0.1.0")
     configure_otel(service_name="facility-service")
+    configure_probe_access_log_filter()
     store = FacilityStore()
 
     @app.get("/healthz")

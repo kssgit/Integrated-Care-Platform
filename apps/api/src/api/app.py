@@ -19,12 +19,13 @@ from api.routers.auth_gateway import router as auth_gateway_router
 from api.routers.search_gateway import router as search_gateway_router
 from api.routers.trust_safety import router as trust_safety_router
 from api.routers.users_gateway import router as users_gateway_router
-from api.telemetry import configure_otel
+from api.telemetry import configure_otel, configure_probe_access_log_filter
 
 
 def create_app() -> FastAPI:
     app = FastAPI(title="Integrated Care API", version="0.1.0")
     configure_otel(service_name="integrated-care-api")
+    configure_probe_access_log_filter()
     app.state.api_metrics = InMemoryApiMetricsCollector()
     app.state.prom_metrics = PrometheusApiMetricsCollector()
     app.state.composite_metrics = CompositeApiMetricsCollector(

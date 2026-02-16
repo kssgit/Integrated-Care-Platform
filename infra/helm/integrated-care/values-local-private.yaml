@@ -18,6 +18,15 @@ dependencies:
   airflow:
     enabled: false
 
+airflow:
+  images:
+    redis:
+      repository: bitnamilegacy/redis
+  postgresql:
+    image:
+      registry: docker.io
+      repository: bitnamilegacy/postgresql
+
 apiEventConsumer:
   enabled: true
 apiEventDlqRetryWorker:
@@ -40,35 +49,35 @@ secret:
 api:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-api
-    tag: "local-20260216-d386fdf"
+    tag: "local-20260216-probe01"
 authService:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-auth-service
-    tag: "local-20260216-alembic4"
+    tag: "local-20260216-probe01"
 userService:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-user-service
-    tag: "local-20260216-alembic4"
+    tag: "local-20260216-probe01"
 facilityService:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-facility-service
-    tag: "local-20260216-alembic4"
+    tag: "local-20260216-probe01"
 searchService:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-search-service
-    tag: "local-20260216-alembic4"
+    tag: "local-20260216-probe01"
 apiEventConsumer:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-api-event-consumer
-    tag: "local-20260216-d386fdf"
+    tag: "local-20260216-probe01"
 apiEventDlqRetryWorker:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-api-event-dlq-retry
-    tag: "local-20260216-d386fdf"
+    tag: "local-20260216-probe01"
 apiEventParkingMonitorWorker:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-api-event-parking-monitor
-    tag: "local-20260216-d386fdf"
+    tag: "local-20260216-probe01"
 etlCronJob:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-pipeline-etl
@@ -76,7 +85,7 @@ etlCronJob:
 pipelineMonitoring:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-pipeline-monitoring
-    tag: "local-20260216-d386fdf"
+    tag: "local-20260216-probe01"
 
 postgresql:
   primary:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from devkit.observability import configure_probe_access_log_filter
 from fastapi import FastAPI, Response
 
 from data_pipeline.monitoring.state import pipeline_exporter, pipeline_metrics
@@ -7,6 +8,7 @@ from data_pipeline.monitoring.state import pipeline_exporter, pipeline_metrics
 
 def create_monitoring_app() -> FastAPI:
     app = FastAPI(title="Data Pipeline Monitoring", version="0.1.0")
+    configure_probe_access_log_filter()
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:

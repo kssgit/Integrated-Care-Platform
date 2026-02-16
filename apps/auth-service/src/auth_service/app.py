@@ -5,6 +5,7 @@ import time
 from uuid import uuid4
 
 from devkit.config import load_settings
+from devkit.observability import configure_probe_access_log_filter
 from devkit.redis import create_redis_client, create_revoked_token_store
 from fastapi import FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -50,6 +51,7 @@ def _load_static_users() -> dict[str, dict[str, str]]:
 def create_app() -> FastAPI:
     settings = load_settings("auth-service")
     app = FastAPI(title="Auth Service", version="0.1.0")
+    configure_probe_access_log_filter()
     jwt = JWTManager(secret=settings.JWT_SECRET_KEY)
     revoked_store = _build_revoked_store()
     users = _load_static_users()

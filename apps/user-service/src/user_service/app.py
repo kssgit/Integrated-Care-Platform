@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 from devkit.config import load_settings
+from devkit.observability import configure_probe_access_log_filter
 from devkit.redis import create_redis_client, create_revoked_token_store
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -35,6 +36,7 @@ def _build_revoked_store():
 def create_app() -> FastAPI:
     settings = load_settings("user-service")
     app = FastAPI(title="User Service", version="0.1.0")
+    configure_probe_access_log_filter()
     store = UserStore()
     jwt = JWTManager(secret=settings.JWT_SECRET_KEY)
     revoked_store = _build_revoked_store()

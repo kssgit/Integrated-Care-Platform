@@ -200,6 +200,15 @@ dependencies:
   airflow:
     enabled: false
 
+airflow:
+  images:
+    redis:
+      repository: bitnamilegacy/redis
+  postgresql:
+    image:
+      registry: docker.io
+      repository: bitnamilegacy/postgresql
+
 postgresql:
   image:
     repository: bitnamilegacy/postgresql
