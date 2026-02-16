@@ -2,6 +2,8 @@ global:
   nameOverride: ""
   fullnameOverride: ""
   namespace: integrated-care
+  security:
+    allowInsecureImages: true
 
 imagePullSecrets: []
 
@@ -70,6 +72,14 @@ config:
   PIPELINE_PAGE_SIZE: "200"
   PIPELINE_START_PAGE: "1"
   PIPELINE_END_PAGE: "1"
+  AUTH_SERVICE_HOST: "0.0.0.0"
+  AUTH_SERVICE_PORT: "8101"
+  USER_SERVICE_HOST: "0.0.0.0"
+  USER_SERVICE_PORT: "8102"
+  FACILITY_SERVICE_HOST: "0.0.0.0"
+  FACILITY_SERVICE_PORT: "8103"
+  SEARCH_SERVICE_HOST: "0.0.0.0"
+  SEARCH_SERVICE_PORT: "8104"
 
 secret:
   create: true
@@ -78,6 +88,9 @@ secret:
   KAFKA_BOOTSTRAP_SERVERS: ""
   PARKING_ALERT_WEBHOOK_URL: ""
   FACILITY_PROVIDER_BASE_URL: "https://provider.example.com"
+  JWT_SECRET_KEY: "change-me"
+  ENCRYPTION_MASTER_KEY: "change-me"
+  INTERNAL_EVENT_HMAC_SECRET: ""
 
 api:
   enabled: true
@@ -105,6 +118,82 @@ api:
   pdb:
     enabled: true
     minAvailable: 1
+
+authService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/example/integrated-care-auth-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8101
+    targetPort: 8101
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+userService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/example/integrated-care-user-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8102
+    targetPort: 8102
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+facilityService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/example/integrated-care-facility-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8103
+    targetPort: 8103
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+searchService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/example/integrated-care-search-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8104
+    targetPort: 8104
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
 
 apiEventConsumer:
   enabled: false
@@ -154,7 +243,7 @@ apiEventParkingMonitorWorker:
 kafkaTopicProvisioner:
   enabled: true
   image:
-    repository: bitnami/kafka
+    repository: bitnamilegacy/kafka
     tag: "3.9.0"
     pullPolicy: IfNotPresent
   topics:
@@ -174,6 +263,15 @@ kafkaTopicProvisioner:
       partitions: 3
       replicationFactor: 1
     - name: api-events-parking
+      partitions: 3
+      replicationFactor: 1
+    - name: facility-events
+      partitions: 3
+      replicationFactor: 1
+    - name: user-events
+      partitions: 3
+      replicationFactor: 1
+    - name: auth-events
       partitions: 3
       replicationFactor: 1
 
@@ -247,7 +345,20 @@ dependencies:
     enabled: false
 
 postgresql:
+  image:
+    repository: bitnamilegacy/postgresql
   auth:
     username: postgres
     password: postgres
     database: integrated_care
+
+redis:
+  image:
+    repository: bitnamilegacy/redis
+
+kafka:
+  image:
+    repository: bitnamilegacy/kafka
+  provisioning:
+    image:
+      repository: bitnamilegacy/kafka

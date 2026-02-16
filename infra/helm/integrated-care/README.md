@@ -5,12 +5,16 @@
 Deploy:
 
 1. API service
-2. Data pipeline monitoring service
-3. ETL CronJob worker
-4. API event consumer worker (optional)
-5. API event DLQ retry worker (optional)
-6. API event parking monitor worker (optional)
-7. Kafka topic provisioner hook job (optional, recommended)
+2. Auth service
+3. User service
+4. Facility service
+5. Search service
+6. Data pipeline monitoring service
+7. ETL CronJob worker
+8. API event consumer worker (optional)
+9. API event DLQ retry worker (optional)
+10. API event parking monitor worker (optional)
+11. Kafka topic provisioner hook job (optional, recommended)
 
 and optionally pull open-source platform dependencies through Helm dependency management.
 
@@ -143,6 +147,10 @@ Build each runtime image from its service-specific Dockerfile:
 
 ```bash
 docker build -f apps/api/Dockerfile.api -t <REGISTRY>/integrated-care-api:<TAG> .
+docker build -f apps/auth-service/Dockerfile -t <REGISTRY>/integrated-care-auth-service:<TAG> .
+docker build -f apps/user-service/Dockerfile -t <REGISTRY>/integrated-care-user-service:<TAG> .
+docker build -f apps/facility-service/Dockerfile -t <REGISTRY>/integrated-care-facility-service:<TAG> .
+docker build -f apps/search-service/Dockerfile -t <REGISTRY>/integrated-care-search-service:<TAG> .
 docker build -f apps/api/Dockerfile.event-consumer -t <REGISTRY>/integrated-care-api-event-consumer:<TAG> .
 docker build -f apps/api/Dockerfile.event-dlq-retry -t <REGISTRY>/integrated-care-api-event-dlq-retry:<TAG> .
 docker build -f apps/api/Dockerfile.event-parking-monitor -t <REGISTRY>/integrated-care-api-event-parking-monitor:<TAG> .

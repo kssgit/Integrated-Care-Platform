@@ -1,5 +1,7 @@
 global:
   namespace: integrated-care
+  security:
+    allowInsecureImages: true
 
 imagePullSecrets:
   - name: acr-pull-secret
@@ -62,6 +64,26 @@ api:
     enabled: true
     minAvailable: 2
 
+authService:
+  image:
+    repository: myacr.azurecr.io/integrated-care-auth-service
+    tag: latest
+
+userService:
+  image:
+    repository: myacr.azurecr.io/integrated-care-user-service
+    tag: latest
+
+facilityService:
+  image:
+    repository: myacr.azurecr.io/integrated-care-facility-service
+    tag: latest
+
+searchService:
+  image:
+    repository: myacr.azurecr.io/integrated-care-search-service
+    tag: latest
+
 apiEventConsumer:
   enabled: true
   image:
@@ -82,6 +104,8 @@ apiEventParkingMonitorWorker:
 
 kafkaTopicProvisioner:
   enabled: true
+  image:
+    repository: bitnamilegacy/kafka
   topics:
     - name: etl-raw-events
       partitions: 6
@@ -99,6 +123,15 @@ kafkaTopicProvisioner:
       partitions: 6
       replicationFactor: 3
     - name: api-events-parking
+      partitions: 6
+      replicationFactor: 3
+    - name: facility-events
+      partitions: 6
+      replicationFactor: 3
+    - name: user-events
+      partitions: 6
+      replicationFactor: 3
+    - name: auth-events
       partitions: 6
       replicationFactor: 3
 
@@ -143,6 +176,9 @@ secret:
   KAFKA_BOOTSTRAP_SERVERS: integrated-care-kafka:9092
   PARKING_ALERT_WEBHOOK_URL: ""
   FACILITY_PROVIDER_BASE_URL: https://provider.example.com
+  JWT_SECRET_KEY: ""
+  ENCRYPTION_MASTER_KEY: ""
+  INTERNAL_EVENT_HMAC_SECRET: ""
 
 serviceMonitor:
   enabled: true
@@ -159,3 +195,18 @@ dependencies:
     enabled: true
   airflow:
     enabled: false
+
+postgresql:
+  image:
+    repository: bitnamilegacy/postgresql
+
+redis:
+  image:
+    repository: bitnamilegacy/redis
+
+kafka:
+  image:
+    repository: bitnamilegacy/kafka
+  provisioning:
+    image:
+      repository: bitnamilegacy/kafka

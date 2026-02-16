@@ -1,0 +1,18 @@
+openapi: 3.1.0
+info:
+  title: Auth Service API
+  version: 1.0.0
+paths:
+  /v1/auth/login:
+    post:
+      summary: Issue access and refresh tokens
+  /v1/auth/refresh:
+    post:
+      summary: Refresh access token
+  /v1/auth/logout:
+    post:
+      summary: Revoke refresh token
+  /v1/auth/me:
+    get:
+      summary: Resolve current authenticated user
+

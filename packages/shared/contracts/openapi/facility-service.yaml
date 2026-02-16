@@ -1,0 +1,12 @@
+openapi: 3.1.0
+info:
+  title: Facility Service API
+  version: 1.0.0
+paths:
+  /v1/facilities:
+    get:
+      summary: List facilities
+  /v1/facilities/{facility_id}:
+    get:
+      summary: Get facility detail
+

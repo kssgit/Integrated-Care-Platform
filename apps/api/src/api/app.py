@@ -15,7 +15,10 @@ from api.response import error_response, success_response
 from api.routers.facilities import router as facilities_router
 from api.routers.geo import router as geo_router
 from api.routers.internal_events import router as internal_events_router
+from api.routers.auth_gateway import router as auth_gateway_router
+from api.routers.search_gateway import router as search_gateway_router
 from api.routers.trust_safety import router as trust_safety_router
+from api.routers.users_gateway import router as users_gateway_router
 from api.telemetry import configure_otel
 
 
@@ -28,7 +31,10 @@ def create_app() -> FastAPI:
         [app.state.api_metrics, app.state.prom_metrics]
     )
     app.add_middleware(ObservabilityMiddleware, collector=app.state.composite_metrics)
+    app.include_router(auth_gateway_router)
+    app.include_router(users_gateway_router)
     app.include_router(facilities_router)
+    app.include_router(search_gateway_router)
     app.include_router(geo_router)
     app.include_router(internal_events_router)
     app.include_router(trust_safety_router)

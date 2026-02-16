@@ -4,7 +4,7 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PYTHONPATH=/app/packages/data-pipeline/src
+    PYTHONPATH=/app/packages/data-pipeline/src:/app/packages/shared/src
 
 WORKDIR /app
 
@@ -16,6 +16,7 @@ RUN pip install --upgrade pip \
     && pip install -r /app/requirements.txt
 
 COPY packages/data-pipeline/src /app/packages/data-pipeline/src
+COPY packages/shared/src /app/packages/shared/src
 
 USER appuser
 CMD ["python", "-m", "data_pipeline.jobs"]

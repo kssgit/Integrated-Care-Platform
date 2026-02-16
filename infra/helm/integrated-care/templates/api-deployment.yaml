@@ -74,6 +74,15 @@ spec:
             - secretRef:
                 name: {{ include "integrated-care.fullname" . }}-secret
             {{- end }}
+          env:
+            - name: AUTH_SERVICE_BASE_URL
+              value: "http://{{ include "integrated-care.fullname" . }}-auth-service:{{ .Values.authService.service.port }}"
+            - name: USER_SERVICE_BASE_URL
+              value: "http://{{ include "integrated-care.fullname" . }}-user-service:{{ .Values.userService.service.port }}"
+            - name: FACILITY_SERVICE_BASE_URL
+              value: "http://{{ include "integrated-care.fullname" . }}-facility-service:{{ .Values.facilityService.service.port }}"
+            - name: SEARCH_SERVICE_BASE_URL
+              value: "http://{{ include "integrated-care.fullname" . }}-search-service:{{ .Values.searchService.service.port }}"
           readinessProbe:
             httpGet:
               path: /readyz

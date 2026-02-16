@@ -80,6 +80,10 @@
 ## Runtime Commands (Git Bash)
 
 - API server: `./scripts/run-api.sh`
+- Auth service: `./scripts/run-auth-service.sh`
+- User service: `./scripts/run-user-service.sh`
+- Facility service: `./scripts/run-facility-service.sh`
+- Search service: `./scripts/run-search-service.sh`
 - API event consumer: `./scripts/run-api-event-consumer.sh`
 - API event DLQ retry worker: `./scripts/run-api-event-dlq-retry.sh`
 - API event parking monitor: `./scripts/run-api-event-parking-monitor.sh`

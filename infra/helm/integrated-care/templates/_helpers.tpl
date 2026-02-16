@@ -8,13 +8,13 @@
 {{- else -}}
 {{- printf "%s-%s" .Release.Name (include "integrated-care.name" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+{{- end -}}
 
 {{- define "integrated-care.serviceAccountName" -}}
 {{- if .Values.serviceAccount.name -}}
 {{- .Values.serviceAccount.name -}}
 {{- else -}}
 {{- printf "%s-sa" (include "integrated-care.fullname" .) -}}
-{{- end -}}
 {{- end -}}
 {{- end -}}
 

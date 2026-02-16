@@ -1,0 +1,20 @@
+{{- if .Values.facilityService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "integrated-care.fullname" . }}-facility-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "integrated-care.labels" . | nindent 4 }}
+    app: facility-service
+spec:
+  type: {{ .Values.facilityService.service.type }}
+  selector:
+    app: facility-service
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: http
+      port: {{ .Values.facilityService.service.port }}
+      targetPort: {{ .Values.facilityService.service.targetPort }}
+{{- end }}
+

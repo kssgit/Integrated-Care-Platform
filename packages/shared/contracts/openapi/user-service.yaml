@@ -1,0 +1,21 @@
+openapi: 3.1.0
+info:
+  title: User Service API
+  version: 1.0.0
+paths:
+  /v1/users:
+    post:
+      summary: Create user
+  /v1/users/{user_id}:
+    get:
+      summary: Get user profile
+    put:
+      summary: Update user profile
+    delete:
+      summary: Soft delete user profile
+  /v1/users/{user_id}/preferences:
+    get:
+      summary: Get user preferences
+    put:
+      summary: Upsert user preferences
+

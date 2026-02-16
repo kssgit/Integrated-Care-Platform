@@ -32,3 +32,11 @@ data:
   PIPELINE_PAGE_SIZE: {{ .Values.config.PIPELINE_PAGE_SIZE | quote }}
   PIPELINE_START_PAGE: {{ .Values.config.PIPELINE_START_PAGE | quote }}
   PIPELINE_END_PAGE: {{ .Values.config.PIPELINE_END_PAGE | quote }}
+  AUTH_SERVICE_HOST: {{ .Values.config.AUTH_SERVICE_HOST | quote }}
+  AUTH_SERVICE_PORT: {{ .Values.config.AUTH_SERVICE_PORT | quote }}
+  USER_SERVICE_HOST: {{ .Values.config.USER_SERVICE_HOST | quote }}
+  USER_SERVICE_PORT: {{ .Values.config.USER_SERVICE_PORT | quote }}
+  FACILITY_SERVICE_HOST: {{ .Values.config.FACILITY_SERVICE_HOST | quote }}
+  FACILITY_SERVICE_PORT: {{ .Values.config.FACILITY_SERVICE_PORT | quote }}
+  SEARCH_SERVICE_HOST: {{ .Values.config.SEARCH_SERVICE_HOST | quote }}
+  SEARCH_SERVICE_PORT: {{ .Values.config.SEARCH_SERVICE_PORT | quote }}

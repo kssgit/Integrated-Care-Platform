@@ -1,0 +1,68 @@
+﻿imagePullSecrets:
+  - name: dockerhub-pull
+
+serviceMonitor:
+  enabled: false
+
+dependencies:
+  kubePrometheusStack:
+    enabled: false
+  airflow:
+    enabled: false
+
+apiEventConsumer:
+  enabled: true
+apiEventDlqRetryWorker:
+  enabled: true
+apiEventParkingMonitorWorker:
+  enabled: true
+
+etlCronJob:
+  enabled: false
+
+secret:
+  JWT_SECRET_KEY: ""
+  ENCRYPTION_MASTER_KEY: ""
+  INTERNAL_EVENT_HMAC_SECRET: ""
+  FACILITY_PROVIDER_BASE_URL: "https://provider.example.com"
+
+api:
+  image:
+    repository: erric22/integrated-care-api
+    tag: "local-20260216-d386fdf"
+authService:
+  image:
+    repository: erric22/integrated-care-auth-service
+    tag: "local-20260216-d386fdf"
+userService:
+  image:
+    repository: erric22/integrated-care-user-service
+    tag: "local-20260216-d386fdf"
+facilityService:
+  image:
+    repository: erric22/integrated-care-facility-service
+    tag: "local-20260216-d386fdf"
+searchService:
+  image:
+    repository: erric22/integrated-care-search-service
+    tag: "local-20260216-d386fdf"
+apiEventConsumer:
+  image:
+    repository: erric22/integrated-care-api-event-consumer
+    tag: "local-20260216-d386fdf"
+apiEventDlqRetryWorker:
+  image:
+    repository: erric22/integrated-care-api-event-dlq-retry
+    tag: "local-20260216-d386fdf"
+apiEventParkingMonitorWorker:
+  image:
+    repository: erric22/integrated-care-api-event-parking-monitor
+    tag: "local-20260216-d386fdf"
+etlCronJob:
+  image:
+    repository: erric22/integrated-care-pipeline-etl
+    tag: "local-20260216-d386fdf"
+pipelineMonitoring:
+  image:
+    repository: erric22/integrated-care-pipeline-monitoring
+    tag: "local-20260216-d386fdf"

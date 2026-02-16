@@ -30,6 +30,11 @@ orchestration = [
 [tool.pytest.ini_options]
 pythonpath = [
     "apps/api/src",
+    "apps/auth-service/src",
+    "apps/user-service/src",
+    "apps/facility-service/src",
+    "apps/search-service/src",
+    "packages/shared/src",
     "packages/data-pipeline/src",
     "packages/geo-engine/src",
     "packages/trust-safety/src",
@@ -38,6 +43,10 @@ addopts = "-p no:cacheprovider -v"
 asyncio_mode = "auto"
 testpaths = [
     "apps/api/tests",
+    "apps/auth-service/tests",
+    "apps/user-service/tests",
+    "apps/facility-service/tests",
+    "apps/search-service/tests",
     "packages/data-pipeline/tests",
     "packages/geo-engine/tests",
     "packages/trust-safety/tests",
@@ -48,10 +57,19 @@ target-version = "py311"
 line-length = 100
 src = [
     "apps/api/src",
+    "apps/auth-service/src",
+    "apps/user-service/src",
+    "apps/facility-service/src",
+    "apps/search-service/src",
+    "packages/shared/src",
     "packages/data-pipeline/src",
     "packages/geo-engine/src",
     "packages/trust-safety/src",
     "apps/api/tests",
+    "apps/auth-service/tests",
+    "apps/user-service/tests",
+    "apps/facility-service/tests",
+    "apps/search-service/tests",
     "packages/data-pipeline/tests",
     "packages/geo-engine/tests",
     "packages/trust-safety/tests",

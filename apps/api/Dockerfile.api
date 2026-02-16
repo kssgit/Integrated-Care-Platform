@@ -4,7 +4,7 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PYTHONPATH=/app/apps/api/src:/app/packages/trust-safety/src:/app/packages/geo-engine/src
+    PYTHONPATH=/app/apps/api/src:/app/packages/shared/src:/app/packages/trust-safety/src:/app/packages/geo-engine/src
 
 WORKDIR /app
 
@@ -16,6 +16,7 @@ RUN pip install --upgrade pip \
     && pip install -r /app/requirements.txt
 
 COPY apps/api/src /app/apps/api/src
+COPY packages/shared/src /app/packages/shared/src
 COPY packages/trust-safety/src /app/packages/trust-safety/src
 COPY packages/geo-engine/src /app/packages/geo-engine/src
 
