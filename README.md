@@ -16,10 +16,10 @@
 .
 ├── apps
 │   ├── admin/                # 운영 콘솔(시설 심사, 리뷰 모더레이션, 광고 관리)
-│   ├── api/                  # BFF/API 서버(검색, 매칭, 리뷰, 인증)
-│   └── web/                  # 사용자 웹/모바일 웹
+│   └── api/                  # BFF/API 서버(검색, 매칭, 리뷰, 인증)
 ├── packages
 │   ├── data-pipeline/        # 서울시/외부 API 수집-정제-적재(ETL)
+│   ├── devkit/               # 서비스 공통 런타임(DB/Redis/Kafka/설정/관측)
 │   ├── geo-engine/           # 안심 통학 지도, 골든타임 지수, 지오펜싱
 │   ├── shared/               # 공통 타입, 유틸, 에러 규격, 로깅 스키마
 │   └── trust-safety/         # 리뷰 인증, OCR 영수증, 안심번호, robots 준수
@@ -53,7 +53,6 @@
 
 ## 4) 권장 기술 스택(예시)
 
-- **Frontend**: Next.js + TypeScript + Map SDK(카카오/네이버/Leaflet)
 - **Backend API**: NestJS(or FastAPI) + PostgreSQL + Redis
 - **검색**: PostgreSQL PostGIS + OpenSearch(선택)
 - **데이터 파이프라인**: Python + Airflow(or Temporal)
@@ -73,11 +72,10 @@
 2. `apps/api`에서 시설 검색/상세/리뷰 API 구축
 3. `packages/geo-engine`에서 안심 통학/골든타임 지수 계산기 구현
 4. `packages/trust-safety`에서 주민 인증+OCR+안심번호 연동
-5. `apps/web`에서 MVP 사용자 플로우(검색→비교→문의→리뷰) 완성
 
 상세 설계는 `docs/architecture` 및 `docs/roadmap` 문서를 참고하세요.
 
-## Runtime Commands (Git Bash)
+## Runtime Commands
 
 - API server: `./scripts/run-api.sh`
 - Auth service: `./scripts/run-auth-service.sh`
@@ -91,3 +89,9 @@
 - Data pipeline one-shot job: `./scripts/run-data-pipeline-job.sh`
 - Test execution: `./scripts/run-tests.sh`
 - Operations runbook: `docs/operations/runtime-runbook.md`
+
+## Service Composition Rule
+
+- 서비스 도메인 로직은 `apps/*`에 위치
+- 보안/계약/도메인 공통 유틸은 `packages/shared` 사용
+- DB/Redis/Kafka/설정/관측 등 인프라 런타임 공통 코드는 `packages/devkit` 사용

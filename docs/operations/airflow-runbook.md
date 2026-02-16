@@ -13,7 +13,7 @@ This document explains how to connect Apache Airflow to the data pipeline packag
 Airflow is optional in local development. Install only when orchestration is required.
 
 ```bash
-source .venv/Scripts/activate
+source .venv/bin/activate
 pip install "apache-airflow>=2.9,<3.0"
 ```
 
@@ -38,4 +38,3 @@ Run tests:
 ```bash
 ./scripts/run-tests.sh
 ```
-

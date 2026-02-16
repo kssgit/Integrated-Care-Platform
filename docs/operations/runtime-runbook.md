@@ -7,7 +7,7 @@ This runbook defines the standard local runtime commands for the platform.
 1. Python 3.12 installed
 2. Project virtual environment exists at `.venv`
 3. Dependencies installed with `pip install -r requirements.txt`
-4. Commands are executed in Git Bash
+4. Commands are executed in a POSIX shell (`bash`/`zsh`)
 
 ## Start API Server
 
