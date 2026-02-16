@@ -4,6 +4,8 @@ import os
 import time
 from uuid import uuid4
 
+from devkit.config import load_settings
+from devkit.redis import create_redis_client, create_revoked_token_store
 from fastapi import FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
@@ -11,24 +13,14 @@ from auth_service.rate_limit import SlidingWindowLimiter
 from auth_service.response import error_response, success_response
 from auth_service.schemas import LoginRequest, LogoutRequest, RefreshRequest
 from shared.security import (
-    InMemoryRevokedTokenStore,
     JWTManager,
-    RedisRevokedTokenStore,
     RevokedTokenStore,
 )
 
 
 def _build_revoked_store() -> RevokedTokenStore:
-    redis_url = os.getenv("REDIS_URL")
-    if not redis_url:
-        return InMemoryRevokedTokenStore()
-    try:
-        import redis.asyncio as redis
-
-        client = redis.from_url(redis_url, encoding="utf-8", decode_responses=True)
-        return RedisRevokedTokenStore(client)
-    except Exception:
-        return InMemoryRevokedTokenStore()
+    settings = load_settings("auth-service")
+    return create_revoked_token_store(create_redis_client(settings.REDIS_URL))
 
 
 def _load_static_users() -> dict[str, dict[str, str]]:
@@ -56,8 +48,9 @@ def _load_static_users() -> dict[str, dict[str, str]]:
 
 
 def create_app() -> FastAPI:
+    settings = load_settings("auth-service")
     app = FastAPI(title="Auth Service", version="0.1.0")
-    jwt = JWTManager(secret=os.getenv("JWT_SECRET_KEY", "dev-only-secret"))
+    jwt = JWTManager(secret=settings.JWT_SECRET_KEY)
     revoked_store = _build_revoked_store()
     users = _load_static_users()
     login_limiter = SlidingWindowLimiter(limit=5, window_seconds=300)

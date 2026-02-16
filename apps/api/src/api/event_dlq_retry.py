@@ -4,7 +4,9 @@ import asyncio
 import json
 import os
 from dataclasses import dataclass
-from typing import Any
+
+from devkit.config import load_settings
+from devkit.kafka import create_consumer, create_producer
 
 
 @dataclass(frozen=True)
@@ -24,8 +26,12 @@ class ApiEventDlqRetryWorker:
         parking_topic: str,
         group_id: str,
     ) -> None:
-        consumer = await self._create_consumer(bootstrap_servers, dlq_topic, group_id)
-        producer = await self._create_producer(bootstrap_servers)
+        consumer = await create_consumer(
+            topic=dlq_topic,
+            group_id=group_id,
+            bootstrap_servers=bootstrap_servers,
+        )
+        producer = await create_producer(bootstrap_servers=bootstrap_servers)
         try:
             async for message in consumer:
                 topic, payload = self._handle_dlq_value(message.value, target_topic, parking_topic)
@@ -50,30 +56,6 @@ class ApiEventDlqRetryWorker:
             # Keep original DLQ payload for later inspection.
             return parking_topic, value
 
-    async def _create_consumer(self, bootstrap_servers: str, topic: str, group_id: str):
-        try:
-            from aiokafka import AIOKafkaConsumer
-        except ImportError as exc:
-            raise RuntimeError("aiokafka is required for dlq retry worker") from exc
-        consumer = AIOKafkaConsumer(
-            topic,
-            bootstrap_servers=bootstrap_servers,
-            group_id=group_id,
-            enable_auto_commit=True,
-            auto_offset_reset="latest",
-        )
-        await consumer.start()
-        return consumer
-
-    async def _create_producer(self, bootstrap_servers: str):
-        try:
-            from aiokafka import AIOKafkaProducer
-        except ImportError as exc:
-            raise RuntimeError("aiokafka is required for dlq retry worker") from exc
-        producer = AIOKafkaProducer(bootstrap_servers=bootstrap_servers)
-        await producer.start()
-        return producer
-
 
 def _required_env(name: str) -> str:
     value = os.getenv(name)
@@ -83,7 +65,8 @@ def _required_env(name: str) -> str:
 
 
 def main() -> None:
-    bootstrap = _required_env("KAFKA_BOOTSTRAP_SERVERS")
+    settings = load_settings("api-event-dlq-retry")
+    bootstrap = settings.KAFKA_BOOTSTRAP_SERVERS or _required_env("KAFKA_BOOTSTRAP_SERVERS")
     dlq_topic = os.getenv("API_EVENT_DLQ_TOPIC", "api-events-dlq")
     target_topic = os.getenv("API_EVENT_TOPIC", "api-events")
     parking_topic = os.getenv("API_EVENT_PARKING_TOPIC", "api-events-parking")
@@ -103,4 +86,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

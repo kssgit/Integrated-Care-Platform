@@ -1,33 +1,24 @@
 from __future__ import annotations
 
-import os
 from typing import Any
 
+from devkit.config import load_settings
+from devkit.redis import create_redis_client, create_revoked_token_store
 from fastapi import Header
 
 from api.errors import ApiError
 from shared.security import (
-    InMemoryRevokedTokenStore,
     JWTManager,
-    RedisRevokedTokenStore,
     Role,
     ensure_roles,
 )
 
-_jwt = JWTManager(secret=os.getenv("JWT_SECRET_KEY", "dev-only-secret"))
+settings = load_settings("integrated-care-api")
+_jwt = JWTManager(secret=settings.JWT_SECRET_KEY)
 
 
 def _build_revoked_store():
-    redis_url = os.getenv("REDIS_URL")
-    if not redis_url:
-        return InMemoryRevokedTokenStore()
-    try:
-        import redis.asyncio as redis
-
-        client = redis.from_url(redis_url, encoding="utf-8", decode_responses=True)
-        return RedisRevokedTokenStore(client)
-    except Exception:
-        return InMemoryRevokedTokenStore()
+    return create_revoked_token_store(create_redis_client(settings.REDIS_URL))
 
 
 _revoked_store = _build_revoked_store()

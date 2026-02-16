@@ -6,6 +6,8 @@ import time
 from dataclasses import dataclass
 from typing import Protocol
 
+from devkit.config import load_settings
+from devkit.kafka import create_consumer
 import httpx
 
 
@@ -64,7 +66,11 @@ class ApiEventParkingMonitorWorker:
         self._notifier = notifier
 
     async def run(self, bootstrap_servers: str, topic: str, group_id: str) -> None:
-        consumer = await self._create_consumer(bootstrap_servers, topic, group_id)
+        consumer = await create_consumer(
+            topic=topic,
+            group_id=group_id,
+            bootstrap_servers=bootstrap_servers,
+        )
         try:
             async for _message in consumer:
                 if self._policy.add_event(time.time()):
@@ -75,22 +81,6 @@ class ApiEventParkingMonitorWorker:
         finally:
             await consumer.stop()
 
-    async def _create_consumer(self, bootstrap_servers: str, topic: str, group_id: str):
-        try:
-            from aiokafka import AIOKafkaConsumer
-        except ImportError as exc:
-            raise RuntimeError("aiokafka is required for parking monitor worker") from exc
-        consumer = AIOKafkaConsumer(
-            topic,
-            bootstrap_servers=bootstrap_servers,
-            group_id=group_id,
-            enable_auto_commit=True,
-            auto_offset_reset="latest",
-        )
-        await consumer.start()
-        return consumer
-
-
 def _required_env(name: str) -> str:
     value = os.getenv(name)
     if not value:
@@ -99,7 +89,8 @@ def _required_env(name: str) -> str:
 
 
 def main() -> None:
-    bootstrap = _required_env("KAFKA_BOOTSTRAP_SERVERS")
+    settings = load_settings("api-event-parking-monitor")
+    bootstrap = settings.KAFKA_BOOTSTRAP_SERVERS or _required_env("KAFKA_BOOTSTRAP_SERVERS")
     topic = os.getenv("API_EVENT_PARKING_TOPIC", "api-events-parking")
     group_id = os.getenv("API_EVENT_PARKING_MONITOR_GROUP", "api-event-parking-monitor")
     webhook_url = _required_env("PARKING_ALERT_WEBHOOK_URL")

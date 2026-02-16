@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-import os
 from uuid import uuid4
 
+from devkit.config import load_settings
+from devkit.redis import create_redis_client, create_revoked_token_store
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
 from shared.security import (
-    InMemoryRevokedTokenStore,
     JWTManager,
-    RedisRevokedTokenStore,
     Role,
     encrypt_phone,
     ensure_roles,
@@ -29,24 +28,17 @@ def error_response(code: str, message: str) -> dict[str, object]:
 
 
 def _build_revoked_store():
-    redis_url = os.getenv("REDIS_URL")
-    if not redis_url:
-        return InMemoryRevokedTokenStore()
-    try:
-        import redis.asyncio as redis
-
-        client = redis.from_url(redis_url, encoding="utf-8", decode_responses=True)
-        return RedisRevokedTokenStore(client)
-    except Exception:
-        return InMemoryRevokedTokenStore()
+    settings = load_settings("user-service")
+    return create_revoked_token_store(create_redis_client(settings.REDIS_URL))
 
 
 def create_app() -> FastAPI:
+    settings = load_settings("user-service")
     app = FastAPI(title="User Service", version="0.1.0")
     store = UserStore()
-    jwt = JWTManager(secret=os.getenv("JWT_SECRET_KEY", "dev-only-secret"))
+    jwt = JWTManager(secret=settings.JWT_SECRET_KEY)
     revoked_store = _build_revoked_store()
-    encryption_key = os.getenv("ENCRYPTION_MASTER_KEY", "dev-encryption-key")
+    encryption_key = settings.ENCRYPTION_MASTER_KEY
 
     async def resolve_auth(authorization: str | None = Header(default=None)) -> dict[str, str]:
         if not authorization or not authorization.lower().startswith("bearer "):

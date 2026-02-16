@@ -4,7 +4,7 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PYTHONPATH=/app/apps/user-service/src:/app/packages/shared/src
+    PYTHONPATH=/app/apps/user-service/src:/app/packages/shared/src:/app/packages/devkit/src
 
 WORKDIR /app
 
@@ -19,6 +19,7 @@ COPY apps/user-service/src /app/apps/user-service/src
 COPY apps/user-service/alembic /app/apps/user-service/alembic
 COPY apps/user-service/alembic.ini /app/apps/user-service/alembic.ini
 COPY packages/shared/src /app/packages/shared/src
+COPY packages/devkit/src /app/packages/devkit/src
 
 USER appuser
 EXPOSE 8102

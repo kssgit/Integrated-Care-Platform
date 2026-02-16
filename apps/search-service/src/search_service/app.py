@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from devkit.observability import configure_otel
 from fastapi import FastAPI, HTTPException, Query
 
 from shared.security import validate_search_input
@@ -14,6 +15,7 @@ def success_response(data: object, meta: dict[str, object] | None = None) -> dic
 
 def create_app() -> FastAPI:
     app = FastAPI(title="Search Service", version="0.1.0")
+    configure_otel(service_name="search-service")
     store = SearchStore()
 
     @app.get("/healthz")
@@ -62,4 +64,3 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-

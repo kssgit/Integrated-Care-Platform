@@ -6,9 +6,12 @@ import os
 from dataclasses import dataclass
 from typing import Any
 
+from devkit.config import load_settings
+from devkit.kafka import create_consumer, create_producer, run_with_retry
+from devkit.redis import create_dedup_store, create_redis_client
 from api.cache import FacilityCache
 from api.dependencies import get_facility_cache
-from api.event_dedup import InMemoryProcessedEventStore, ProcessedEventStore, RedisProcessedEventStore
+from api.event_dedup import ProcessedEventStore
 
 
 @dataclass(frozen=True)
@@ -54,8 +57,8 @@ class ApiEventConsumer:
         group_id: str,
         dlq_topic: str,
     ) -> None:
-        consumer = await self._create_consumer(bootstrap_servers, topic, group_id)
-        producer = await self._create_producer(bootstrap_servers)
+        consumer = await create_consumer(topic=topic, group_id=group_id, bootstrap_servers=bootstrap_servers)
+        producer = await create_producer(bootstrap_servers=bootstrap_servers)
         try:
             async for message in consumer:
                 await self._process_with_retry(
@@ -67,43 +70,15 @@ class ApiEventConsumer:
             await producer.stop()
 
     async def _process_with_retry(self, value: bytes, publish_dlq) -> None:
-        attempt = 0
-        while attempt < self._config.max_retries:
-            try:
-                message = self._decode_message(value)
-                await self.handle_message(message)
-                return
-            except Exception as exc:
-                attempt += 1
-                if attempt >= self._config.max_retries:
-                    await publish_dlq(value, str(exc))
-                    return
-                delay = self._config.base_delay_seconds * (2 ** (attempt - 1))
-                await self._sleep(delay)
-
-    async def _create_consumer(self, bootstrap_servers: str, topic: str, group_id: str):
         try:
-            from aiokafka import AIOKafkaConsumer
-        except ImportError as exc:
-            raise RuntimeError("aiokafka is required for api event consumer") from exc
-        consumer = AIOKafkaConsumer(
-            topic,
-            bootstrap_servers=bootstrap_servers,
-            group_id=group_id,
-            enable_auto_commit=True,
-            auto_offset_reset="latest",
-        )
-        await consumer.start()
-        return consumer
-
-    async def _create_producer(self, bootstrap_servers: str):
-        try:
-            from aiokafka import AIOKafkaProducer
-        except ImportError as exc:
-            raise RuntimeError("aiokafka is required for api event consumer") from exc
-        producer = AIOKafkaProducer(bootstrap_servers=bootstrap_servers)
-        await producer.start()
-        return producer
+            await run_with_retry(
+                lambda: self.handle_message(self._decode_message(value)),
+                max_retries=self._config.max_retries,
+                base_delay_seconds=self._config.base_delay_seconds,
+                sleep_fn=self._sleep,
+            )
+        except Exception as exc:
+            await publish_dlq(value, str(exc))
 
     async def _publish_dlq(self, producer, topic: str, value: bytes, error: str) -> None:
         payload = json.dumps(
@@ -135,7 +110,8 @@ def _required_env(name: str) -> str:
 
 
 def main() -> None:
-    bootstrap = _required_env("KAFKA_BOOTSTRAP_SERVERS")
+    settings = load_settings("api-event-consumer")
+    bootstrap = settings.KAFKA_BOOTSTRAP_SERVERS or _required_env("KAFKA_BOOTSTRAP_SERVERS")
     topic = os.getenv("API_EVENT_TOPIC", "api-events")
     dlq_topic = os.getenv("API_EVENT_DLQ_TOPIC", "api-events-dlq")
     group_id = os.getenv("API_EVENT_CONSUMER_GROUP", "api-event-consumer")
@@ -163,16 +139,9 @@ def main() -> None:
 
 
 def _build_dedup_store() -> ProcessedEventStore:
-    redis_url = os.getenv("REDIS_URL")
-    if redis_url:
-        try:
-            import redis.asyncio as redis
-
-            client = redis.from_url(redis_url, encoding="utf-8", decode_responses=True)
-            return RedisProcessedEventStore(client)
-        except Exception:
-            return InMemoryProcessedEventStore()
-    return InMemoryProcessedEventStore()
+    settings = load_settings("api-event-consumer")
+    client = create_redis_client(settings.REDIS_URL)
+    return create_dedup_store(client)
 
 
 if __name__ == "__main__":

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import os
 from logging.config import fileConfig
 
 from alembic import context
+from devkit.db import load_database_url
 from sqlalchemy import engine_from_config, pool, text
 
 config = context.config
@@ -13,10 +13,7 @@ if config.config_file_name is not None:
 
 
 def _database_url() -> str:
-    url = os.getenv("DATABASE_URL") or config.get_main_option("sqlalchemy.url")
-    if url.startswith("postgresql://"):
-        return url.replace("postgresql://", "postgresql+psycopg://", 1)
-    return url
+    return load_database_url(config.get_main_option("sqlalchemy.url"))
 
 
 target_metadata = None
