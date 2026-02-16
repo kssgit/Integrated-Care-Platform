@@ -184,6 +184,10 @@ serviceMonitor:
   enabled: true
   interval: 15s
 
+migrations:
+  enabled: true
+  backoffLimit: 2
+
 dependencies:
   postgresql:
     enabled: false

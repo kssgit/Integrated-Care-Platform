@@ -26,7 +26,7 @@ etlCronJob:
   enabled: false
 
 kafkaTopicProvisioner:
-  enabled: true
+  enabled: false
 
 secret:
   JWT_SECRET_KEY: "local-dev-jwt-secret-change-me-2026"
@@ -40,19 +40,19 @@ api:
     tag: "local-20260216-d386fdf"
 authService:
   image:
-    repository: erric22/integrated-care-auth-service
+    repository: registry.jonathan.acryl.ai/wyatt/integrated-care-auth-service
     tag: "local-20260216-alembic4"
 userService:
   image:
-    repository: erric22/integrated-care-user-service
+    repository: registry.jonathan.acryl.ai/wyatt/integrated-care-user-service
     tag: "local-20260216-alembic4"
 facilityService:
   image:
-    repository: erric22/integrated-care-facility-service
+    repository: registry.jonathan.acryl.ai/wyatt/integrated-care-facility-service
     tag: "local-20260216-alembic4"
 searchService:
   image:
-    repository: erric22/integrated-care-search-service
+    repository: registry.jonathan.acryl.ai/wyatt/integrated-care-search-service
     tag: "local-20260216-alembic4"
 apiEventConsumer:
   image:
