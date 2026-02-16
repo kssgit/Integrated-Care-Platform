@@ -30,3 +30,7 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+
+# Helm dependency artifacts
+infra/helm/integrated-care/Chart.lock
+infra/helm/integrated-care/charts/
