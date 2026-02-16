@@ -8,7 +8,8 @@
 - `apps/user-service`: 사용자/선호도
 - `apps/facility-service`: 시설 원천 데이터
 - `apps/search-service`: 검색 인덱스
-- `apps/admin`: 운영 콘솔(백오피스 문서/자산)
+- `apps/admin-service`: 운영 API (시설 보정/파이프라인 제어)
+- `apps/admin`: 운영 콘솔 문서/자산(선택)
 
 ## 공통 규칙
 - 서비스 도메인 로직: `apps/*`

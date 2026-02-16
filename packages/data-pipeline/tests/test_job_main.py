@@ -36,6 +36,14 @@ def test_provider_endpoint_path_returns_seoul_default_path() -> None:
     assert _provider_endpoint_path("seoul_open_data") == "/facilities"
 
 
+def test_provider_endpoint_path_returns_seoul_district_path() -> None:
+    assert _provider_endpoint_path("seoul_district_open_data") == "/seoul/district/facilities"
+
+
+def test_provider_endpoint_path_returns_mohw_path() -> None:
+    assert _provider_endpoint_path("mohw_open_data") == "/mohw/facilities"
+
+
 def test_provider_endpoint_path_raises_for_unsupported_provider() -> None:
     with pytest.raises(RuntimeError):
         _provider_endpoint_path("unknown_provider")

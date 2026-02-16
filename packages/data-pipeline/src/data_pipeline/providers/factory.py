@@ -6,15 +6,19 @@ from typing import Any
 from data_pipeline.core.metrics import InMemoryPipelineMetricsCollector
 from data_pipeline.providers.base import BaseProviderAdapter
 from data_pipeline.providers.gyeonggi import GyeonggiAdapter
+from data_pipeline.providers.mohw import MohwAdapter
 from data_pipeline.providers.national import NationalAdapter
 from data_pipeline.providers.seoul import SeoulAdapter
+from data_pipeline.providers.seoul_district import SeoulDistrictAdapter
 
 AdapterType = type[BaseProviderAdapter]
 
 _ADAPTERS: dict[str, AdapterType] = {
     "seoul_open_data": SeoulAdapter,
+    "seoul_district_open_data": SeoulDistrictAdapter,
     "gyeonggi_open_data": GyeonggiAdapter,
     "national_open_data": NationalAdapter,
+    "mohw_open_data": MohwAdapter,
 }
 
 

@@ -15,8 +15,10 @@ from data_pipeline.messaging.kafka_broker import KafkaMessageBroker
 
 _PROVIDER_ENDPOINT_PATHS: dict[str, str] = {
     "seoul_open_data": "/facilities",
+    "seoul_district_open_data": "/seoul/district/facilities",
     "gyeonggi_open_data": "/gyeonggi/facilities",
     "national_open_data": "/national/facilities",
+    "mohw_open_data": "/mohw/facilities",
 }
 
 

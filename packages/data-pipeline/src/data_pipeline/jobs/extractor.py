@@ -18,6 +18,26 @@ def _parse_source_updated_at(value: Any) -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _pick(item: dict[str, Any], *keys: str) -> Any:
+    for key in keys:
+        if key in item and item[key] is not None:
+            return item[key]
+    return None
+
+
+def _to_str(value: Any, default: str = "") -> str:
+    if value is None:
+        return default
+    return str(value).strip()
+
+
+def _to_float_or_reject(value: Any, invalid_value: float) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return invalid_value
+
+
 class ProviderFacilityExtractor(Extractor[dict]):
     def __init__(
         self,
@@ -57,13 +77,21 @@ class ProviderFacilityExtractor(Extractor[dict]):
         return [self._to_record(item) for item in items]
 
     def _to_record(self, item: dict) -> dict:
-        source_id = item.get("source_id") or item.get("id")
+        source_id = _pick(item, "source_id", "id", "facility_id", "inst_id", "svc_id")
+        name = _pick(item, "name", "facility_name", "institution_name", "svc_nm")
+        address = _pick(item, "address", "road_address", "addr", "jibun_address")
+        district_code = _pick(item, "district_code", "gu_code", "sigungu_code", "district")
+        lat = _pick(item, "lat", "latitude", "y", "wgs84_lat")
+        lng = _pick(item, "lng", "longitude", "x", "wgs84_lng")
+        source_updated_at = _pick(item, "source_updated_at", "updated_at", "last_modified_at")
         return {
-            "source_id": str(source_id),
-            "name": str(item["name"]),
-            "address": str(item["address"]),
-            "district_code": str(item["district_code"]),
-            "lat": float(item["lat"]),
-            "lng": float(item["lng"]),
-            "source_updated_at": _parse_source_updated_at(item.get("source_updated_at")),
+            "source_id": _to_str(source_id, default=""),
+            "name": _to_str(name, default=""),
+            "address": _to_str(address, default=""),
+            "district_code": _to_str(district_code, default=""),
+            # Parsing failure intentionally maps to out-of-range values
+            # so quality gate can reject the record without crashing extraction.
+            "lat": _to_float_or_reject(lat, invalid_value=999.0),
+            "lng": _to_float_or_reject(lng, invalid_value=999.0),
+            "source_updated_at": _parse_source_updated_at(source_updated_at),
         }

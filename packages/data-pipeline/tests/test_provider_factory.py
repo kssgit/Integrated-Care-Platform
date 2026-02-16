@@ -10,8 +10,10 @@ from data_pipeline.providers.factory import build_provider_adapter
     ("provider_name", "expected_provider"),
     [
         ("seoul_open_data", "seoul_open_data"),
+        ("seoul_district_open_data", "seoul_district_open_data"),
         ("gyeonggi_open_data", "gyeonggi_open_data"),
         ("national_open_data", "national_open_data"),
+        ("mohw_open_data", "mohw_open_data"),
     ],
 )
 async def test_provider_factory_builds_supported_adapters(

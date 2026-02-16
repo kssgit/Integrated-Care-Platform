@@ -20,7 +20,8 @@
 │   ├── user-service/         # 사용자/선호도
 │   ├── facility-service/     # 시설 데이터 원천 서비스
 │   ├── search-service/       # 검색 인덱스 서비스
-│   └── admin/                # 운영 콘솔(후순위)
+│   ├── admin-service/        # 운영 API (시설 보정/파이프라인 제어)
+│   └── admin/                # 운영 콘솔 문서/자산(후순위)
 ├── packages
 │   ├── data-pipeline/        # 서울시/외부 API 수집-정제-적재(ETL)
 │   ├── devkit/               # 서비스 공통 런타임(DB/Redis/Kafka/설정/관측)
@@ -86,6 +87,7 @@
 - User service: `./scripts/run-user-service.sh`
 - Facility service: `./scripts/run-facility-service.sh`
 - Search service: `./scripts/run-search-service.sh`
+- Admin service: `./scripts/run-admin-service.sh`
 - API event consumer: `./scripts/run-api-event-consumer.sh`
 - API event DLQ retry worker: `./scripts/run-api-event-dlq-retry.sh`
 - API event parking monitor: `./scripts/run-api-event-parking-monitor.sh`
