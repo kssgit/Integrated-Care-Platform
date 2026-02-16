@@ -6,6 +6,8 @@ global:
   security:
     allowInsecureImages: true
 
+deploymentMode: production
+
 imagePullSecrets: []
 
 serviceAccount:
@@ -73,16 +75,25 @@ config:
   PIPELINE_PAGE_SIZE: "200"
   PIPELINE_START_PAGE: "1"
   PIPELINE_END_PAGE: "1"
+  PIPELINE_HTTP_CONNECT_TIMEOUT_SECONDS: "2.0"
+  PIPELINE_HTTP_READ_TIMEOUT_SECONDS: "5.0"
+  PIPELINE_PROVIDER_MAX_RETRIES: "3"
+  PIPELINE_PROVIDER_RETRY_BASE_DELAY_SECONDS: "0.1"
+  PIPELINE_QUALITY_REJECT_SAMPLE_SIZE: "5"
   AUTH_SERVICE_HOST: "0.0.0.0"
   AUTH_SERVICE_PORT: "8101"
   USER_SERVICE_HOST: "0.0.0.0"
   USER_SERVICE_PORT: "8102"
+  USER_SERVICE_BASE_URL: "http://integrated-care-integrated-care-user-service:8102"
   FACILITY_SERVICE_HOST: "0.0.0.0"
   FACILITY_SERVICE_PORT: "8103"
   SEARCH_SERVICE_HOST: "0.0.0.0"
   SEARCH_SERVICE_PORT: "8104"
   ADMIN_SERVICE_HOST: "0.0.0.0"
   ADMIN_SERVICE_PORT: "8105"
+  AIRFLOW_API_TIMEOUT_SECONDS: "5.0"
+  AIRFLOW_API_MAX_RETRIES: "3"
+  AIRFLOW_API_RETRY_BASE_DELAY_SECONDS: "0.2"
 
 secret:
   create: true
@@ -110,6 +121,7 @@ api:
     type: ClusterIP
     port: 80
     targetPort: 8000
+    nodePort: null
   resources:
     requests:
       cpu: "200m"
@@ -137,6 +149,7 @@ authService:
     type: ClusterIP
     port: 8101
     targetPort: 8101
+    nodePort: null
   resources:
     requests:
       cpu: "100m"
@@ -213,6 +226,7 @@ adminService:
     type: ClusterIP
     port: 8105
     targetPort: 8105
+    nodePort: null
   resources:
     requests:
       cpu: "100m"
@@ -412,6 +426,14 @@ postgresql:
   image:
     repository: bitnamilegacy/postgresql
   primary:
+    extendedConfiguration: |
+      timezone = 'Asia/Seoul'
+      log_timezone = 'Asia/Seoul'
+    extraEnvVars:
+      - name: TZ
+        value: Asia/Seoul
+      - name: PGTZ
+        value: Asia/Seoul
     persistence:
       storageClass: ""
     service:

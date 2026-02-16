@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 import json
 from typing import Any
 
 from devkit.config import load_settings
 from devkit.db import AsyncDatabaseManager, Base, create_all_tables, create_schema_if_not_exists
+from devkit.timezone import now_kst_iso
 from sqlalchemy import Float, String, Text, func, or_, select
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -20,7 +20,7 @@ class Facility:
     lat: float
     lng: float
     metadata: dict[str, Any] = field(default_factory=dict)
-    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = field(default_factory=now_kst_iso)
 
 
 _SETTINGS = load_settings("facility-service")
@@ -148,7 +148,7 @@ class FacilityStore:
                 {
                     "facility_id": facility.facility_id,
                     "source": source,
-                    "synced_at": datetime.now(timezone.utc).isoformat(),
+                    "synced_at": now_kst_iso(),
                 }
             )
             return facility
@@ -184,7 +184,7 @@ class FacilityStore:
             {
                 "facility_id": facility.facility_id,
                 "source": source,
-                "synced_at": datetime.now(timezone.utc).isoformat(),
+                "synced_at": now_kst_iso(),
             }
         )
         return saved

@@ -19,6 +19,7 @@ async def test_airflow_client_maps_401_to_unauthorized(monkeypatch) -> None:
             base_url="http://airflow.local",
             username="admin",
             password="password",
+            max_retries=1,
         )
     )
 
@@ -41,6 +42,7 @@ async def test_airflow_client_maps_timeout(monkeypatch) -> None:
             base_url="http://airflow.local",
             username="admin",
             password="password",
+            max_retries=1,
         )
     )
 
@@ -49,3 +51,26 @@ async def test_airflow_client_maps_timeout(monkeypatch) -> None:
 
     assert exc_info.value.code == "AIRFLOW_TIMEOUT"
     assert exc_info.value.status_code == 504
+
+
+@pytest.mark.asyncio
+async def test_airflow_client_maps_404_to_not_found(monkeypatch) -> None:
+    async def _request(self, method, url, json=None, auth=None):  # noqa: ANN001
+        request = httpx.Request(method=method, url=url)
+        return httpx.Response(status_code=404, request=request)
+
+    monkeypatch.setattr(httpx.AsyncClient, "request", _request, raising=True)
+    client = AirflowClient(
+        AirflowClientConfig(
+            base_url="http://airflow.local",
+            username="admin",
+            password="password",
+            max_retries=1,
+        )
+    )
+
+    with pytest.raises(AirflowClientError) as exc_info:
+        await client.get_dag_run("missing-run")
+
+    assert exc_info.value.code == "AIRFLOW_NOT_FOUND"
+    assert exc_info.value.status_code == 404

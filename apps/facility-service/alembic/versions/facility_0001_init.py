@@ -9,7 +9,7 @@ from alembic import op
 
 revision = "facility_0001"
 down_revision = None
-branch_labels = ("facility",)
+branch_labels = None
 depends_on = None
 
 

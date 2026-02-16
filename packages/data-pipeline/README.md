@@ -26,3 +26,20 @@
 - `dag_run.conf` 지원 파라미터:
   - `provider_name` (`seoul_open_data`, `seoul_district_open_data`, `gyeonggi_open_data`, `national_open_data`, `mohw_open_data`)
   - `start_page`, `end_page`, `dry_run`
+
+## 운영 파라미터
+- HTTP/Retry:
+  - `PIPELINE_HTTP_CONNECT_TIMEOUT_SECONDS`
+  - `PIPELINE_HTTP_READ_TIMEOUT_SECONDS`
+  - `PIPELINE_PROVIDER_MAX_RETRIES`
+  - `PIPELINE_PROVIDER_RETRY_BASE_DELAY_SECONDS`
+- Quality Gate:
+  - `PIPELINE_QUALITY_MAX_REJECT_RATIO`
+  - `PIPELINE_QUALITY_REJECT_SAMPLE_SIZE`
+
+## 메트릭
+- `pipeline_run_total{provider,status}`
+- `pipeline_records_total{provider,result}`
+- `pipeline_reject_ratio{provider}`
+- `pipeline_duration_seconds{provider}`
+- `pipeline_provider_http_errors_total{provider,code}`

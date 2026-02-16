@@ -36,6 +36,7 @@ data:
   AUTH_SERVICE_PORT: {{ .Values.config.AUTH_SERVICE_PORT | quote }}
   USER_SERVICE_HOST: {{ .Values.config.USER_SERVICE_HOST | quote }}
   USER_SERVICE_PORT: {{ .Values.config.USER_SERVICE_PORT | quote }}
+  USER_SERVICE_BASE_URL: {{ .Values.config.USER_SERVICE_BASE_URL | quote }}
   FACILITY_SERVICE_HOST: {{ .Values.config.FACILITY_SERVICE_HOST | quote }}
   FACILITY_SERVICE_PORT: {{ .Values.config.FACILITY_SERVICE_PORT | quote }}
   SEARCH_SERVICE_HOST: {{ .Values.config.SEARCH_SERVICE_HOST | quote }}

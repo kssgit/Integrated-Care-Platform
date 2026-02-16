@@ -3,6 +3,8 @@ global:
   security:
     allowInsecureImages: true
 
+deploymentMode: production
+
 imagePullSecrets:
   - name: acr-pull-secret
 
@@ -48,6 +50,15 @@ config:
   PIPELINE_STORE_BACKEND: "postgres"
   PIPELINE_KAFKA_PUBLISH_ENABLED: "true"
   PIPELINE_PROVIDER_NAME: "seoul_open_data"
+  PIPELINE_HTTP_CONNECT_TIMEOUT_SECONDS: "2.0"
+  PIPELINE_HTTP_READ_TIMEOUT_SECONDS: "5.0"
+  PIPELINE_PROVIDER_MAX_RETRIES: "4"
+  PIPELINE_PROVIDER_RETRY_BASE_DELAY_SECONDS: "0.2"
+  PIPELINE_QUALITY_REJECT_SAMPLE_SIZE: "10"
+  USER_SERVICE_BASE_URL: "http://integrated-care-integrated-care-user-service:8102"
+  AIRFLOW_API_TIMEOUT_SECONDS: "5.0"
+  AIRFLOW_API_MAX_RETRIES: "3"
+  AIRFLOW_API_RETRY_BASE_DELAY_SECONDS: "0.2"
 
 api:
   image:
@@ -68,6 +79,8 @@ authService:
   image:
     repository: myacr.azurecr.io/integrated-care-auth-service
     tag: latest
+  service:
+    type: ClusterIP
 
 userService:
   image:
@@ -88,6 +101,8 @@ adminService:
   image:
     repository: myacr.azurecr.io/integrated-care-admin-service
     tag: latest
+  service:
+    type: ClusterIP
 
 apiEventConsumer:
   enabled: true
@@ -239,10 +254,25 @@ airflow:
 postgresql:
   image:
     repository: bitnamilegacy/postgresql
+  primary:
+    extendedConfiguration: |
+      timezone = 'Asia/Seoul'
+      log_timezone = 'Asia/Seoul'
+    extraEnvVars:
+      - name: TZ
+        value: Asia/Seoul
+      - name: PGTZ
+        value: Asia/Seoul
 
 redis:
   image:
     repository: bitnamilegacy/redis
+  master:
+    service:
+      type: ClusterIP
+  replica:
+    service:
+      type: ClusterIP
 
 kafka:
   image:

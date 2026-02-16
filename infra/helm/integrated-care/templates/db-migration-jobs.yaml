@@ -152,6 +152,57 @@ spec:
                   key: DATABASE_URL
 ---
 {{- end }}
+{{- if .Values.adminService.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "integrated-care.fullname" . }}-db-migrate-admin
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "integrated-care.labels" . | nindent 4 }}
+    app: db-migrate-admin
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-15"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.migrations.backoffLimit }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app: db-migrate-admin
+    spec:
+      serviceAccountName: {{ include "integrated-care.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      securityContext:
+        {{- toYaml .Values.security.podSecurityContext | nindent 8 }}
+      restartPolicy: OnFailure
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: db-migrate-admin
+          image: "{{ .Values.adminService.image.repository }}:{{ .Values.adminService.image.tag }}"
+          imagePullPolicy: {{ .Values.adminService.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.security.containerSecurityContext | nindent 12 }}
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              set -euo pipefail
+              cd /app/apps/admin-service
+              alembic -c alembic.ini upgrade head
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "integrated-care.fullname" . }}-secret
+                  key: DATABASE_URL
+---
+{{- end }}
 {{- if .Values.searchService.enabled }}
 apiVersion: batch/v1
 kind: Job

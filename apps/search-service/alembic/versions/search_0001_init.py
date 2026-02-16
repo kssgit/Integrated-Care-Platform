@@ -8,7 +8,7 @@ from alembic import op
 
 revision = "search_0001"
 down_revision = None
-branch_labels = ("search",)
+branch_labels = None
 depends_on = None
 
 

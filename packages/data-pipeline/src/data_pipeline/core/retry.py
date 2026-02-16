@@ -11,12 +11,15 @@ async def with_exponential_backoff(
     retries: int = 3,
     base_delay_seconds: float = 0.1,
     on_retry: Callable[[int, float], None] | None = None,
+    should_retry: Callable[[Exception], bool] | None = None,
 ) -> T:
     attempt = 0
     while attempt < retries:
         try:
             return await operation()
         except Exception as exc:
+            if should_retry and not should_retry(exc):
+                raise ProviderRequestError(str(exc)) from exc
             attempt += 1
             if attempt >= retries:
                 raise ProviderRequestError(str(exc)) from exc

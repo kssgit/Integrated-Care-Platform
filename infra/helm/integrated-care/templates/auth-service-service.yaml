@@ -16,5 +16,7 @@ spec:
     - name: http
       port: {{ .Values.authService.service.port }}
       targetPort: {{ .Values.authService.service.targetPort }}
+      {{- if and (eq .Values.authService.service.type "NodePort") .Values.authService.service.nodePort }}
+      nodePort: {{ .Values.authService.service.nodePort }}
+      {{- end }}
 {{- end }}
-

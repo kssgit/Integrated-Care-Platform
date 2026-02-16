@@ -58,3 +58,4 @@ class PagedProviderAdapter(BaseProviderAdapter):
     def _on_retry(self, _: int, __: float) -> None:
         if self._metrics:
             self._metrics.increment_external_api_error()
+            self._metrics.increment_provider_http_error(code="retry", provider=self.provider_name)

@@ -16,6 +16,8 @@ RUN pip install --upgrade pip \
     && pip install -r /app/requirements.txt
 
 COPY apps/admin-service/src /app/apps/admin-service/src
+COPY apps/admin-service/alembic /app/apps/admin-service/alembic
+COPY apps/admin-service/alembic.ini /app/apps/admin-service/alembic.ini
 COPY packages/shared/src /app/packages/shared/src
 COPY packages/devkit/src /app/packages/devkit/src
 

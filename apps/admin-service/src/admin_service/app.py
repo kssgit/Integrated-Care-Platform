@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from datetime import datetime
-from datetime import timezone
 from contextlib import asynccontextmanager
 import os
 from uuid import uuid4
 
 from devkit.config import load_settings
 from devkit.observability import configure_otel, configure_probe_access_log_filter
+from devkit.timezone import now_kst_iso
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
 
@@ -23,6 +23,9 @@ def _build_airflow_client() -> AirflowClient | None:
     username = os.getenv("AIRFLOW_API_USERNAME")
     password = os.getenv("AIRFLOW_API_PASSWORD")
     dag_id = os.getenv("AIRFLOW_DAG_ID", "seoul_care_plus_daily_sync")
+    timeout_seconds = float(os.getenv("AIRFLOW_API_TIMEOUT_SECONDS", "5.0"))
+    max_retries = int(os.getenv("AIRFLOW_API_MAX_RETRIES", "3"))
+    retry_base_delay_seconds = float(os.getenv("AIRFLOW_API_RETRY_BASE_DELAY_SECONDS", "0.2"))
     if not base_url or not username or not password:
         return None
     return AirflowClient(
@@ -31,6 +34,9 @@ def _build_airflow_client() -> AirflowClient | None:
             username=username,
             password=password,
             dag_id=dag_id,
+            timeout_seconds=timeout_seconds,
+            max_retries=max_retries,
+            retry_base_delay_seconds=retry_base_delay_seconds,
         )
     )
 
@@ -160,6 +166,7 @@ def create_app() -> FastAPI:
             "end_page": body.end_page,
             "dry_run": body.dry_run,
         }
+        request_id = str(uuid4())
         run_id = f"admin-{uuid4()}"
         try:
             response = await airflow_client.trigger_dag_run(conf=conf, dag_run_id=run_id)
@@ -182,7 +189,8 @@ def create_app() -> FastAPI:
                 "dag_id": airflow_client.dag_id,
                 "dag_run_id": dag_run_id,
                 "state": state,
-                "triggered_at": datetime.now(timezone.utc).isoformat(),
+                "triggered_at": now_kst_iso(),
+                "request_id": request_id,
             },
             meta={},
         )

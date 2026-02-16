@@ -1,6 +1,8 @@
 imagePullSecrets:
   - name: dockerhub-pull
 
+deploymentMode: development
+
 global:
   storageClass: jonathan-system-sc
 
@@ -40,6 +42,13 @@ airflow:
         subPath: admin_pipeline_dag.py
         readOnly: true
   webserver:
+    service:
+      type: NodePort
+      ports:
+        - name: airflow-ui
+          port: 8080
+          targetPort: airflow-ui
+          nodePort: 32080
     extraVolumes:
       - name: admin-pipeline-dag
         configMap:
@@ -90,52 +99,69 @@ secret:
   AIRFLOW_DAG_ID: "seoul_care_plus_daily_sync"
 
 api:
+  service:
+    type: NodePort
+    nodePort: 30080
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-api
-    tag: "local-20260216-probe01"
+    tag: "local-20260216-authgw01"
 authService:
+  service:
+    type: NodePort
+    nodePort: 30101
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-auth-service
-    tag: "local-20260216-probe01"
+    tag: "local-20260216-safealembic01"
 userService:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-user-service
-    tag: "local-20260216-probe01"
+    tag: "local-20260216-userbackfill01"
 facilityService:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-facility-service
-    tag: "local-20260216-probe01"
+    tag: "local-20260216-safealembic01"
 searchService:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-search-service
-    tag: "local-20260216-probe01"
+    tag: "local-20260216-safealembic01"
 adminService:
+  service:
+    type: NodePort
+    nodePort: 30105
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-admin-service
-    tag: "local-20260216-admin02"
+    tag: "local-20260216-pipelineadmin01"
 apiEventConsumer:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-api-event-consumer
-    tag: "local-20260216-probe01"
+    tag: "local-20260216-kst01"
 apiEventDlqRetryWorker:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-api-event-dlq-retry
-    tag: "local-20260216-probe01"
+    tag: "local-20260216-kst01"
 apiEventParkingMonitorWorker:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-api-event-parking-monitor
-    tag: "local-20260216-probe01"
+    tag: "local-20260216-kst01"
 etlCronJob:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-pipeline-etl
-    tag: "local-20260216-pipeline02"
+    tag: "local-20260216-pipelineadmin01"
 pipelineMonitoring:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-pipeline-monitoring
-    tag: "local-20260216-probe01"
+    tag: "local-20260216-pipelineadmin01"
 
 postgresql:
   primary:
+    extendedConfiguration: |
+      timezone = 'Asia/Seoul'
+      log_timezone = 'Asia/Seoul'
+    extraEnvVars:
+      - name: TZ
+        value: Asia/Seoul
+      - name: PGTZ
+        value: Asia/Seoul
     persistence:
       storageClass: jonathan-system-sc
     service:
@@ -145,9 +171,15 @@ postgresql:
 
 redis:
   master:
+    service:
+      type: NodePort
+      nodePorts:
+        redis: "30379"
     persistence:
       storageClass: jonathan-system-sc
   replica:
+    service:
+      type: ClusterIP
     persistence:
       storageClass: jonathan-system-sc
 

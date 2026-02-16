@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+
+from devkit.timezone import now_kst_iso
 from typing import Any
 
 
@@ -10,12 +11,15 @@ class UserRecord:
     user_id: str
     email: str
     role: str
+    auth_user_id: str | None = None
+    auth_source: str = "local"
+    status: str = "active"
     phone_encrypted: str | None = None
     phone_hash: str | None = None
     profile_data: dict[str, Any] = field(default_factory=dict)
     deleted_at: str | None = None
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=now_kst_iso)
+    updated_at: str = field(default_factory=now_kst_iso)
 
 
 @dataclass
@@ -26,4 +30,3 @@ class UserPreference:
     location_lng: float | None = None
     search_radius_km: int = 5
     notification_settings: dict[str, Any] = field(default_factory=dict)
-

@@ -1,89 +1,84 @@
 # Kubernetes/AKS Runbook
 
-This runbook defines a baseline deployment flow for Kubernetes and AKS.
+## 목표
+- Dev에서 pipeline/admin e2e를 먼저 검증하고, Prod는 승인 전 준비 상태를 보장한다.
 
-## Deployment Targets
+## Helm 배포 파일
+- 기본: `infra/helm/integrated-care/values.yaml`
+- Dev 모드: `infra/helm/integrated-care/values-mode-dev.yaml`
+- Prod 모드: `infra/helm/integrated-care/values-mode-prod.yaml`
+- AKS 오버레이: `infra/helm/integrated-care/values-aks.yaml`
+- 로컬 프라이빗: `infra/helm/integrated-care/values-local-private.yaml`
 
-1. API service (`python -m api`)
-2. Data pipeline monitoring service (`python -m data_pipeline.monitoring`)
-3. ETL CronJob (`python -m data_pipeline.jobs`)
-4. API event consumer (`python -m api.event_consumer`)
-5. API event DLQ retry worker (`python -m api.event_dlq_retry`)
-6. API event parking monitor (`python -m api.event_parking_monitor`)
-7. Kafka topic provisioner hook job (Helm post-install/post-upgrade)
+## Preflight Checklist
+- [ ] Namespace/SA/RBAC 준비 완료
+- [ ] `DATABASE_URL`, `REDIS_URL`, `KAFKA_BOOTSTRAP_SERVERS` 유효
+- [ ] `AIRFLOW_API_*` 시크릿 값 유효
+- [ ] 스토리지 클래스(`jonathan-system-sc` 또는 AKS 클래스) 존재
+- [ ] Kafka 토픽 생성/권한 확인
+- [ ] 이미지 pull secret 유효
 
-## Manifest Location
-
-Base manifests are under:
-
-`infra/k8s/base`
-
-Helm chart is under:
-
-`infra/helm/integrated-care`
-
-## Required Variables
-
-1. `REDIS_URL`
-2. `FACILITY_PROVIDER_BASE_URL`
-3. `API_HOST`, `API_PORT`
-4. `PIPELINE_MONITORING_HOST`, `PIPELINE_MONITORING_PORT`
-5. `DATABASE_URL` (auto-generated when Helm PostgreSQL dependency is enabled and value is empty)
-6. `KAFKA_BOOTSTRAP_SERVERS` (auto-generated when Helm Kafka dependency is enabled and value is empty)
-
-## Apply to Cluster
-
-```bash
-kubectl apply -k infra/k8s/base
-```
-
-## Helm Deployment (Recommended)
-
+## Dev 배포
 ```bash
 helm dependency update infra/helm/integrated-care
 helm upgrade --install integrated-care infra/helm/integrated-care \
-  --namespace integrated-care --create-namespace
-```
-
-If Kafka dependency is enabled, topic provisioning runs automatically through the Helm hook job.
-
-AKS image override example:
-
-```bash
-helm upgrade --install integrated-care infra/helm/integrated-care \
   --namespace integrated-care --create-namespace \
-  -f infra/helm/integrated-care/values-aks.yaml \
-  --set api.image.tag=<TAG> \
-  --set pipelineMonitoring.image.tag=<TAG>
+  -f infra/helm/integrated-care/values.yaml \
+  -f infra/helm/integrated-care/values-mode-dev.yaml \
+  -f infra/helm/integrated-care/values-local-private.yaml
 ```
 
-AKS baseline override file:
-
-`infra/helm/integrated-care/values-aks.yaml`
-
-If you need to override repository at runtime:
-
+## Prod 준비 배포(검증용)
 ```bash
-helm upgrade --install integrated-care infra/helm/integrated-care \
-  --namespace integrated-care --create-namespace \
-  -f infra/helm/integrated-care/values-aks.yaml \
-  --set api.image.repository=<ACR_LOGIN_SERVER>/integrated-care-api \
-  --set pipelineMonitoring.image.repository=<ACR_LOGIN_SERVER>/integrated-care-pipeline \
-  --set pipelineMonitoring.image.tag=<TAG>
+helm dependency update infra/helm/integrated-care
+helm lint infra/helm/integrated-care
+helm template integrated-care infra/helm/integrated-care \
+  -f infra/helm/integrated-care/values.yaml \
+  -f infra/helm/integrated-care/values-mode-prod.yaml \
+  -f infra/helm/integrated-care/values-aks.yaml > /tmp/integrated-care-prod-rendered.yaml
 ```
 
-## Probes and Metrics
+## Dev E2E Smoke
+1. 파드/잡 상태
+```bash
+kubectl -n integrated-care get pods
+kubectl -n integrated-care get jobs
+```
 
-1. Liveness: `/healthz`
-2. Readiness: `/readyz`
-3. Metrics: `/metrics`
-4. API HPA: CPU target 65%, min 2, max 20
-5. Optional hardening: `networkPolicy.enabled=true`, API/Pipeline `pdb.enabled=true`
+2. Admin trigger → Airflow run
+- `POST /v1/admin/pipeline/runs`
+- `GET /v1/admin/pipeline/runs/{dag_run_id}`
 
-## AKS Notes
+3. Pipeline 결과 확인
+- Postgres 적재 row 증가
+- API 조회 결과 반영
+- `/metrics`에 아래 지표 노출
+  - `pipeline_run_total{provider,status}`
+  - `pipeline_records_total{provider,result}`
+  - `pipeline_reject_ratio{provider}`
+  - `pipeline_duration_seconds{provider}`
+  - `pipeline_provider_http_errors_total{provider,code}`
 
-1. Replace placeholder images in deployment YAML files with your ACR image paths.
-2. Use managed identity or Kubernetes secret integration for sensitive values.
-3. If Prometheus Operator is not installed, remove `servicemonitor.yaml` from `kustomization.yaml`.
-4. If you deploy via Helm, control OSS dependencies in `infra/helm/integrated-care/values.yaml`.
-5. For Workload Identity, set `serviceAccount.annotations.azure.workload.identity/client-id` in `values-aks.yaml`.
+4. 실패 복구
+- provider 5xx 유도 후 재시도/실패 로그 확인
+- admin retry endpoint로 재실행 성공 확인
+
+## Prod 승인 게이트
+- [ ] `helm lint` 통과
+- [ ] `helm template` 렌더링 오류 없음
+- [ ] migration dry-run 로그 확인
+- [ ] smoke checklist 100% 완료
+- [ ] rollback revision 확인 및 실행 절차 점검
+
+## 장애 대응 표준
+1. 증상: trigger 실패
+- 원인: Airflow 인증/네트워크 오류
+- 조치: `AIRFLOW_API_*` 시크릿 확인, admin-service 로그 점검
+
+2. 증상: run 실패(reject ratio 초과)
+- 원인: 공급자 payload 품질 저하
+- 조치: provider 응답 샘플 확인, threshold/정규화 규칙 점검
+
+3. 증상: 저장 성공 후 이벤트 발행 실패
+- 원인: Kafka 연결/권한 문제
+- 조치: 브로커 상태 확인, topic ACL 확인, 재실행 정책 적용

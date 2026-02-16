@@ -13,6 +13,8 @@ class AirflowClientConfig:
     password: str
     dag_id: str = "seoul_care_plus_daily_sync"
     timeout_seconds: float = 5.0
+    max_retries: int = 3
+    retry_base_delay_seconds: float = 0.2
 
 
 class AirflowClientError(RuntimeError):
@@ -45,22 +47,83 @@ class AirflowClient:
 
     async def _request(self, method: str, path: str, json: dict[str, Any] | None = None) -> dict[str, Any]:
         base = self._config.base_url.rstrip("/")
-        try:
-            async with httpx.AsyncClient(timeout=self._config.timeout_seconds) as client:
-                response = await client.request(
-                    method=method,
-                    url=f"{base}{path}",
-                    json=json,
-                    auth=(self._config.username, self._config.password),
+        last_error: AirflowClientError | None = None
+        for attempt in range(1, self._config.max_retries + 1):
+            try:
+                async with httpx.AsyncClient(timeout=self._config.timeout_seconds) as client:
+                    response = await client.request(
+                        method=method,
+                        url=f"{base}{path}",
+                        json=json,
+                        auth=(self._config.username, self._config.password),
+                    )
+            except httpx.TimeoutException as exc:
+                last_error = AirflowClientError("AIRFLOW_TIMEOUT", "Airflow request timed out", 504)
+                if attempt >= self._config.max_retries:
+                    raise last_error from exc
+                await self._sleep_backoff(attempt)
+                continue
+            except httpx.HTTPStatusError as exc:
+                status = exc.response.status_code
+                if status in {401, 403}:
+                    raise AirflowClientError("AIRFLOW_UNAUTHORIZED", "Airflow auth failed", 502) from exc
+                if status == 404:
+                    raise AirflowClientError("AIRFLOW_NOT_FOUND", "Airflow resource not found", 404) from exc
+                if status in {400, 422}:
+                    raise AirflowClientError("AIRFLOW_BAD_REQUEST", "Airflow rejected request", 400) from exc
+                if status in {429} or status >= 500:
+                    last_error = AirflowClientError(
+                        "AIRFLOW_UPSTREAM_ERROR",
+                        f"Airflow temporary upstream error: status={status}",
+                        502,
+                    )
+                    if attempt >= self._config.max_retries:
+                        raise last_error from exc
+                    await self._sleep_backoff(attempt)
+                    continue
+                raise AirflowClientError(
+                    "AIRFLOW_HTTP_ERROR",
+                    f"Airflow returned an unexpected error: status={status}",
+                    502,
+                ) from exc
+            except httpx.HTTPError as exc:
+                last_error = AirflowClientError("AIRFLOW_UNAVAILABLE", "Airflow request failed", 502)
+                if attempt >= self._config.max_retries:
+                    raise last_error from exc
+                await self._sleep_backoff(attempt)
+                continue
+
+            if response.status_code in {429} or response.status_code >= 500:
+                last_error = AirflowClientError(
+                    "AIRFLOW_UPSTREAM_ERROR",
+                    f"Airflow temporary upstream error: status={response.status_code}",
+                    502,
                 )
-                response.raise_for_status()
-        except httpx.TimeoutException as exc:
-            raise AirflowClientError("AIRFLOW_TIMEOUT", "Airflow request timed out", 504) from exc
-        except httpx.HTTPStatusError as exc:
-            status = exc.response.status_code
-            if status in {401, 403}:
-                raise AirflowClientError("AIRFLOW_UNAUTHORIZED", "Airflow auth failed", 502) from exc
-            raise AirflowClientError("AIRFLOW_HTTP_ERROR", "Airflow returned an error", 502) from exc
-        except httpx.HTTPError as exc:
-            raise AirflowClientError("AIRFLOW_UNAVAILABLE", "Airflow request failed", 502) from exc
-        return response.json()
+                if attempt >= self._config.max_retries:
+                    raise last_error
+                await self._sleep_backoff(attempt)
+                continue
+
+            if response.status_code in {401, 403}:
+                raise AirflowClientError("AIRFLOW_UNAUTHORIZED", "Airflow auth failed", 502)
+            if response.status_code == 404:
+                raise AirflowClientError("AIRFLOW_NOT_FOUND", "Airflow resource not found", 404)
+            if response.status_code in {400, 422}:
+                raise AirflowClientError("AIRFLOW_BAD_REQUEST", "Airflow rejected request", 400)
+            if response.status_code >= 400:
+                raise AirflowClientError(
+                    "AIRFLOW_HTTP_ERROR",
+                    f"Airflow returned an unexpected error: status={response.status_code}",
+                    502,
+                )
+            return response.json()
+
+        if last_error:
+            raise last_error
+        raise AirflowClientError("AIRFLOW_UNAVAILABLE", "Airflow request failed", 502)
+
+    async def _sleep_backoff(self, attempt: int) -> None:
+        import asyncio
+
+        delay = self._config.retry_base_delay_seconds * (2 ** max(0, attempt - 1))
+        await asyncio.sleep(delay)

@@ -154,6 +154,7 @@ def test_trigger_and_get_pipeline_run() -> None:
         json={"provider_name": "seoul_open_data", "start_page": 1, "end_page": 1, "dry_run": False},
     )
     assert trigger.status_code == 200
+    assert trigger.json()["data"]["request_id"]
     dag_run_id = trigger.json()["data"]["dag_run_id"]
 
     get_run = client.get(

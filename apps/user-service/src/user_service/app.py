@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from contextlib import asynccontextmanager
 from uuid import uuid4
 
 from devkit.config import load_settings
@@ -9,14 +9,14 @@ from devkit.redis import create_redis_client, create_revoked_token_store
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
-from shared.security import (
-    JWTManager,
-    Role,
-    encrypt_phone,
-    ensure_roles,
-)
+from shared.security import JWTManager, Role, encrypt_phone, ensure_roles
 from user_service.models import UserPreference, UserRecord
-from user_service.schemas import PreferenceUpsertRequest, UserCreateRequest, UserUpdateRequest
+from user_service.schemas import (
+    InternalUserBootstrapRequest,
+    PreferenceUpsertRequest,
+    UserCreateRequest,
+    UserUpdateRequest,
+)
 from user_service.store import UserStore
 
 
@@ -35,12 +35,22 @@ def _build_revoked_store():
 
 def create_app() -> FastAPI:
     settings = load_settings("user-service")
-    app = FastAPI(title="User Service", version="0.1.0")
-    configure_probe_access_log_filter()
-    store = UserStore()
+    store = UserStore(settings.DATABASE_URL)
     jwt = JWTManager(secret=settings.JWT_SECRET_KEY)
     revoked_store = _build_revoked_store()
     encryption_key = settings.ENCRYPTION_MASTER_KEY
+    internal_token = settings.INTERNAL_EVENT_HMAC_SECRET
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI):
+        await store.ensure_ready()
+        try:
+            yield
+        finally:
+            await store.close()
+
+    app = FastAPI(title="User Service", version="0.1.0", lifespan=lifespan)
+    configure_probe_access_log_filter()
 
     async def resolve_auth(authorization: str | None = Header(default=None)) -> dict[str, str]:
         if not authorization or not authorization.lower().startswith("bearer "):
@@ -63,6 +73,18 @@ def create_app() -> FastAPI:
             )
         return {"user_id": payload.sub, "role": payload.role}
 
+    def verify_internal_token(header_token: str | None) -> None:
+        if not internal_token:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail={"code": "INTERNAL_TOKEN_NOT_CONFIGURED", "message": "internal auth token is not configured"},
+            )
+        if not header_token or header_token != internal_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={"code": "UNAUTHORIZED", "message": "invalid internal token"},
+            )
+
     @app.exception_handler(HTTPException)
     async def handle_http_exception(_: Request, exc: HTTPException) -> JSONResponse:
         if isinstance(exc.detail, dict):
@@ -76,6 +98,22 @@ def create_app() -> FastAPI:
     @app.get("/readyz")
     async def readyz() -> dict[str, object]:
         return success_response({"status": "ready"}, meta={})
+
+    @app.post("/internal/users/bootstrap")
+    async def bootstrap_user(
+        body: InternalUserBootstrapRequest,
+        x_internal_token: str | None = Header(default=None),
+    ) -> dict[str, object]:
+        verify_internal_token(x_internal_token)
+        user, created = await store.ensure_user(
+            user_id=body.user_id,
+            email=body.email,
+            role=body.role,
+            auth_user_id=body.auth_user_id,
+            auth_source=body.auth_source,
+            profile_data=body.profile_data,
+        )
+        return success_response({"user": user.__dict__, "created": created}, meta={})
 
     @app.post("/v1/users")
     async def create_user(body: UserCreateRequest, auth: dict[str, str] = Depends(resolve_auth)) -> dict[str, object]:
@@ -127,7 +165,6 @@ def create_app() -> FastAPI:
             phone_encrypted, phone_hash = encrypt_phone(updates.pop("phone"), encryption_key)
             updates["phone_encrypted"] = phone_encrypted
             updates["phone_hash"] = phone_hash
-        updates["updated_at"] = datetime.now(timezone.utc).isoformat()
         updated = await store.update_user(user_id, updates)
         if not updated:
             raise HTTPException(status_code=404, detail={"code": "NOT_FOUND", "message": "user not found"})

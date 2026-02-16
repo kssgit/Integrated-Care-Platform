@@ -1,0 +1,50 @@
+deploymentMode: development
+
+networkPolicy:
+  enabled: false
+
+global:
+  security:
+    allowInsecureImages: true
+
+api:
+  service:
+    type: NodePort
+    nodePort: 30080
+
+authService:
+  service:
+    type: NodePort
+    nodePort: 30101
+
+adminService:
+  service:
+    type: NodePort
+    nodePort: 30105
+
+postgresql:
+  primary:
+    service:
+      type: NodePort
+      nodePorts:
+        postgresql: "30432"
+
+redis:
+  master:
+    service:
+      type: NodePort
+      nodePorts:
+        redis: "30379"
+  replica:
+    service:
+      type: ClusterIP
+
+airflow:
+  webserver:
+    service:
+      type: NodePort
+      ports:
+        - name: airflow-ui
+          port: 8080
+          targetPort: airflow-ui
+          nodePort: 32080

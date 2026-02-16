@@ -27,6 +27,8 @@ def test_quality_gate_filters_invalid_records_under_threshold() -> None:
 
     assert len(result.accepted) == 1
     assert result.rejected_count == 1
+    assert result.reject_ratio == 0.5
+    assert result.rejected_samples[0].reason == "invalid_lat_range"
 
 
 def test_quality_gate_raises_when_reject_ratio_exceeds_threshold() -> None:

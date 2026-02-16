@@ -11,7 +11,10 @@
 
 ## 주요 엔드포인트
 - `GET /healthz`, `GET /readyz`, `GET /metrics`
-- `POST /v1/auth/*` (auth 게이트웨이)
+- `POST /v1/auth/signup|login|refresh|logout` (auth 게이트웨이)
+- `GET /v1/auth/me`
+- `GET /v1/auth/sso/{provider}/authorize`
+- `POST /v1/auth/sso/{provider}/callback`
 - `GET|POST|PUT|DELETE /v1/users/*` (user 게이트웨이)
 - `GET /v1/facilities*` (facility 게이트웨이)
 - `GET /v1/search/facilities` (search 게이트웨이)

@@ -100,6 +100,40 @@ helm upgrade --install integrated-care infra/helm/integrated-care \
   --namespace integrated-care --create-namespace
 ```
 
+## Mode Profiles (Dev/Prod)
+
+This chart now provides dedicated mode overlays:
+
+1. `infra/helm/integrated-care/values-mode-dev.yaml`
+2. `infra/helm/integrated-care/values-mode-prod.yaml`
+
+Recommended usage:
+
+```bash
+# Development mode (NodePort exposure for debugging)
+helm upgrade --install integrated-care infra/helm/integrated-care \
+  --namespace integrated-care --create-namespace \
+  -f infra/helm/integrated-care/values-local-private.yaml \
+  -f infra/helm/integrated-care/values-mode-dev.yaml
+
+# Production mode (ClusterIP + hardened defaults)
+helm upgrade --install integrated-care infra/helm/integrated-care \
+  --namespace integrated-care --create-namespace \
+  -f infra/helm/integrated-care/values-aks.yaml \
+  -f infra/helm/integrated-care/values-mode-prod.yaml
+```
+
+### Dev mode NodePort defaults
+
+1. API: `30080`
+2. Auth: `30101`
+3. Admin: `30105`
+4. PostgreSQL: `30432`
+5. Redis (master): `30379`
+6. Airflow webserver: `32080`
+
+In production mode, these are kept as `ClusterIP` to reduce public exposure.
+
 ## ETL CronJob
 
 The chart deploys an ETL CronJob by default (`etlCronJob.enabled=true`).

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import OrderedDict
 from typing import Any, Awaitable, Callable
 
 from data_pipeline.core.models import FacilityRecord
@@ -38,12 +39,18 @@ class PostgresFacilityStore(FacilityStore):
     async def upsert_many(self, records: list[FacilityRecord]) -> int:
         if not records:
             return 0
+        deduplicated_records = self._deduplicate_for_idempotency(records)
         pool = await self._get_pool()
-        for start in range(0, len(records), self._batch_size):
-            batch = records[start : start + self._batch_size]
+        for start in range(0, len(deduplicated_records), self._batch_size):
+            batch = deduplicated_records[start : start + self._batch_size]
             values = [self._to_row(record) for record in batch]
-            await pool.executemany(UPSERT_SQL, values)
-        return len(records)
+            try:
+                await pool.executemany(UPSERT_SQL, values)
+            except Exception as exc:
+                if self._is_non_retryable_error(exc):
+                    raise RuntimeError("postgres upsert failed with non-retryable constraint error") from exc
+                raise RuntimeError("postgres upsert failed due to transient error") from exc
+        return len(deduplicated_records)
 
     async def _get_pool(self) -> Any:
         if self._pool is not None:
@@ -70,3 +77,14 @@ class PostgresFacilityStore(FacilityStore):
             record.lng,
             record.source_updated_at,
         )
+
+    def _deduplicate_for_idempotency(self, records: list[FacilityRecord]) -> list[FacilityRecord]:
+        deduped: "OrderedDict[tuple[str, str], FacilityRecord]" = OrderedDict()
+        for record in records:
+            key = (record.source_id, record.source_updated_at.isoformat())
+            deduped[key] = record
+        return list(deduped.values())
+
+    def _is_non_retryable_error(self, exc: Exception) -> bool:
+        message = str(exc).lower()
+        return "duplicate key" in message or "violates" in message or "constraint" in message

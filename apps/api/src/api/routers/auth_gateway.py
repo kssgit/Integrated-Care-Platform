@@ -16,6 +16,15 @@ async def login(request: Request) -> dict:
     )
 
 
+@router.post("/signup")
+async def signup(request: Request) -> dict:
+    return await proxy_request(
+        request=request,
+        base_url=service_base_url("AUTH_SERVICE_BASE_URL"),
+        target_path="/v1/auth/signup",
+    )
+
+
 @router.post("/refresh")
 async def refresh(request: Request) -> dict:
     return await proxy_request(
@@ -42,3 +51,20 @@ async def me(request: Request) -> dict:
         target_path="/v1/auth/me",
     )
 
+
+@router.get("/sso/{provider}/authorize")
+async def sso_authorize(provider: str, request: Request) -> dict:
+    return await proxy_request(
+        request=request,
+        base_url=service_base_url("AUTH_SERVICE_BASE_URL"),
+        target_path=f"/v1/auth/sso/{provider}/authorize",
+    )
+
+
+@router.post("/sso/{provider}/callback")
+async def sso_callback(provider: str, request: Request) -> dict:
+    return await proxy_request(
+        request=request,
+        base_url=service_base_url("AUTH_SERVICE_BASE_URL"),
+        target_path=f"/v1/auth/sso/{provider}/callback",
+    )

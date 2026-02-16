@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 import json
 from typing import Any
 
-from devkit.db import AsyncDatabaseManager, Base, create_all_tables, create_schema_if_not_exists
+from devkit.db import AsyncDatabaseManager, Base
+from devkit.timezone import now_kst_iso
 from sqlalchemy import Integer, String, Text, select, text
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -83,7 +84,7 @@ class AdminStore:
         await self._ensure_orm_ready()
 
         facility_table = '"facility".facilities'
-        now = datetime.now(timezone.utc).isoformat()
+        now = now_kst_iso()
 
         async def _run(session):
             row = (
@@ -210,7 +211,7 @@ class AdminStore:
         if self._db is None:
             raise RuntimeError("DATABASE_URL is required for admin operations")
         await self._ensure_orm_ready()
-        now = datetime.now(timezone.utc).isoformat()
+        now = now_kst_iso()
 
         async def _run(session):
             row = PipelineRunAuditORM(
@@ -287,7 +288,4 @@ class AdminStore:
         if self._db is None or self._orm_ready:
             return
         await self._db.connect()
-        await create_schema_if_not_exists(self._db.engine, "admin")
-        await create_schema_if_not_exists(self._db.engine, "facility")
-        await create_all_tables(self._db.engine, Base.metadata)
         self._orm_ready = True

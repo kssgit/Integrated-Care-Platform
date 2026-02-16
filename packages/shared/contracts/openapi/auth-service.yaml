@@ -3,6 +3,9 @@ info:
   title: Auth Service API
   version: 1.0.0
 paths:
+  /v1/auth/signup:
+    post:
+      summary: Create local auth user and issue tokens
   /v1/auth/login:
     post:
       summary: Issue access and refresh tokens
@@ -15,4 +18,9 @@ paths:
   /v1/auth/me:
     get:
       summary: Resolve current authenticated user
-
+  /v1/auth/sso/{provider}/authorize:
+    get:
+      summary: Build provider authorize URL
+  /v1/auth/sso/{provider}/callback:
+    post:
+      summary: Complete SSO login (scaffold)

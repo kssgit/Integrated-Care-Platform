@@ -3,6 +3,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
+from data_pipeline.core.exceptions import ProviderRequestError
 from data_pipeline.jobs.extractor import ProviderFacilityExtractor
 
 
@@ -147,3 +148,52 @@ async def test_provider_facility_extractor_maps_invalid_coordinates_to_reject_va
     assert len(rows) == 1
     assert rows[0]["lat"] == 999.0
     assert rows[0]["lng"] == 999.0
+
+
+@pytest.mark.asyncio
+async def test_provider_facility_extractor_retries_on_429() -> None:
+    state = {"count": 0}
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        state["count"] += 1
+        if state["count"] < 3:
+            return httpx.Response(status_code=429, json={"error": "rate limit"})
+        return httpx.Response(
+            status_code=200,
+            json={"data": [{"id": "ok-1", "name": "Center", "address": "Seoul", "district_code": "11110", "lat": 37.5, "lng": 126.9}]},
+        )
+
+    transport = httpx.MockTransport(handler)
+    extractor = ProviderFacilityExtractor(
+        base_url="https://provider.example.com",
+        start_page=1,
+        end_page=1,
+        max_retries=3,
+        retry_base_delay_seconds=0.0,
+        client_factory=lambda: httpx.AsyncClient(transport=transport, timeout=5.0),
+    )
+
+    rows = await extractor.extract()
+
+    assert state["count"] == 3
+    assert len(rows) == 1
+    assert rows[0]["source_id"] == "ok-1"
+
+
+@pytest.mark.asyncio
+async def test_provider_facility_extractor_raises_on_malformed_payload() -> None:
+    def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(status_code=200, json={"items": []})
+
+    transport = httpx.MockTransport(handler)
+    extractor = ProviderFacilityExtractor(
+        base_url="https://provider.example.com",
+        start_page=1,
+        end_page=1,
+        max_retries=1,
+        retry_base_delay_seconds=0.0,
+        client_factory=lambda: httpx.AsyncClient(transport=transport, timeout=5.0),
+    )
+
+    with pytest.raises(ProviderRequestError):
+        await extractor.extract()

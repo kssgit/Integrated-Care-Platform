@@ -4,6 +4,7 @@ from devkit.config import ServiceSettings, load_settings
 from devkit.db import (
     AsyncDatabaseManager,
     Base,
+    configure_alembic_connection,
     create_all_tables,
     create_async_engine,
     create_schema_if_not_exists,
@@ -28,6 +29,7 @@ __all__ = [
     "AsyncKafkaProducerManager",
     "AsyncRedisManager",
     "Base",
+    "configure_alembic_connection",
     "ServiceSettings",
     "create_all_tables",
     "configure_otel",

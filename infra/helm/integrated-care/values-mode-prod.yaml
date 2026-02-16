@@ -1,0 +1,68 @@
+deploymentMode: production
+
+networkPolicy:
+  enabled: true
+
+global:
+  security:
+    allowInsecureImages: true
+
+serviceAccount:
+  automountServiceAccountToken: false
+
+api:
+  service:
+    type: ClusterIP
+    nodePort: null
+
+authService:
+  service:
+    type: ClusterIP
+    nodePort: null
+
+adminService:
+  service:
+    type: ClusterIP
+    nodePort: null
+
+postgresql:
+  image:
+    repository: bitnamilegacy/postgresql
+  primary:
+    service:
+      type: ClusterIP
+      nodePorts:
+        postgresql: null
+
+redis:
+  image:
+    repository: bitnamilegacy/redis
+  master:
+    service:
+      type: ClusterIP
+  replica:
+    service:
+      type: ClusterIP
+
+kafka:
+  image:
+    repository: bitnamilegacy/kafka
+  provisioning:
+    image:
+      repository: bitnamilegacy/kafka
+
+kafkaTopicProvisioner:
+  image:
+    repository: bitnamilegacy/kafka
+
+airflow:
+  images:
+    redis:
+      repository: bitnamilegacy/redis
+  postgresql:
+    image:
+      registry: docker.io
+      repository: bitnamilegacy/postgresql
+  webserver:
+    service:
+      type: ClusterIP

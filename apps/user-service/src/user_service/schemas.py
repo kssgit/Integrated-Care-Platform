@@ -24,3 +24,12 @@ class PreferenceUpsertRequest(BaseModel):
     location_lng: float | None = None
     search_radius_km: int = Field(default=5, ge=1, le=100)
     notification_settings: dict[str, Any] = Field(default_factory=dict)
+
+
+class InternalUserBootstrapRequest(BaseModel):
+    user_id: str = Field(min_length=3, max_length=255)
+    email: str = Field(min_length=3, max_length=255)
+    role: str = Field(default="guardian")
+    auth_user_id: str | None = Field(default=None, max_length=255)
+    auth_source: str = Field(default="local", max_length=32)
+    profile_data: dict[str, Any] = Field(default_factory=dict)

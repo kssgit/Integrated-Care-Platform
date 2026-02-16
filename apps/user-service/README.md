@@ -15,6 +15,7 @@
 - `GET|PUT|DELETE /v1/users/{user_id}`
 - `GET|PUT /v1/users/{user_id}/preferences`
 - `GET /internal/snapshot` (관리자)
+- `POST /internal/users/bootstrap` (auth-service 내부 연동)
 
 ## 코드 구조
 - `src/user_service/app.py`: 인증/인가 + API 핸들러

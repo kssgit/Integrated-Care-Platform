@@ -44,6 +44,13 @@ def test_ready_endpoint_response_shape() -> None:
     assert body["data"]["status"] == "ready"
 
 
+def test_dev_api_test_page_exists() -> None:
+    client = TestClient(create_app())
+    response = client.get("/dev/api-test")
+    assert response.status_code == 200
+    assert "Integrated Care API Quick Test" in response.text
+
+
 def test_facilities_endpoint_pagination_response_shape() -> None:
     app = create_app()
     client = TestClient(app)

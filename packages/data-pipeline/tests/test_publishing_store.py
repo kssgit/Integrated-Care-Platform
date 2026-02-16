@@ -40,3 +40,29 @@ async def test_publishing_store_emits_normalized_events() -> None:
     assert len(broker.published[ETL_NORMALIZED_TOPIC]) == 1
     assert broker.published[ETL_NORMALIZED_TOPIC][0].payload["source_id"] == "A1"
 
+
+class FailingBroker(InMemoryMessageBroker):
+    async def publish(self, topic, message):  # noqa: ANN001
+        del topic, message
+        raise RuntimeError("publish failure")
+
+
+@pytest.mark.asyncio
+async def test_publishing_store_raises_when_publish_fails_after_save() -> None:
+    store = PublishingFacilityStore(
+        delegate=StubStore(),
+        broker=FailingBroker(),
+        provider="seoul_open_data",
+    )
+    record = FacilityRecord(
+        source_id="A1",
+        name="Center",
+        address="Seoul",
+        district_code="11110",
+        lat=37.5,
+        lng=126.9,
+        source_updated_at=datetime(2026, 1, 1),
+    )
+
+    with pytest.raises(RuntimeError, match="publish failed after successful save"):
+        await store.upsert_many([record])

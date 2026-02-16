@@ -26,3 +26,7 @@
 - `AIRFLOW_API_USERNAME`
 - `AIRFLOW_API_PASSWORD`
 - `AIRFLOW_DAG_ID` (기본: `seoul_care_plus_daily_sync`)
+
+## DB Migration
+- `alembic -c alembic.ini upgrade head`
+- 스키마/테이블 생성은 Alembic으로 관리하며, 런타임 auto-create는 사용하지 않습니다.

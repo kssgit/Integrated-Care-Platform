@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
+import pytest
 
 from shared.security import JWTManager
 from user_service.app import create_app
@@ -46,3 +47,22 @@ def test_invalid_token_is_rejected() -> None:
     )
     assert response.status_code == 401
     assert response.json()["error"]["code"] == "INVALID_TOKEN"
+
+
+def test_internal_bootstrap_creates_user(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INTERNAL_EVENT_HMAC_SECRET", "internal-token")
+    client = TestClient(create_app())
+    response = client.post(
+        "/internal/users/bootstrap",
+        headers={"x-internal-token": "internal-token"},
+        json={
+            "user_id": "auth-user-1",
+            "email": "auth.user@example.com",
+            "role": "guardian",
+            "profile_data": {"source": "auth"},
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["created"] is True
+    assert payload["user"]["user_id"] == "auth-user-1"

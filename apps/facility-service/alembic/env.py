@@ -3,8 +3,8 @@ from __future__ import annotations
 from logging.config import fileConfig
 
 from alembic import context
-from devkit.db import load_database_url
-from sqlalchemy import engine_from_config, pool, text
+from devkit.db import configure_alembic_connection, load_database_url
+from sqlalchemy import engine_from_config, pool
 
 config = context.config
 
@@ -43,8 +43,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        connection.execute(text("CREATE SCHEMA IF NOT EXISTS facility"))
-        connection.commit()
+        configure_alembic_connection(connection, schema_name="facility")
         context.configure(
             connection=connection,
             target_metadata=target_metadata,

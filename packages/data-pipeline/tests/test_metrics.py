@@ -35,6 +35,8 @@ async def test_pipeline_collects_stage_metrics() -> None:
 
     assert saved_count == 1
     assert metrics.processed_records == 1
+    assert metrics.pipeline_run_total[("unknown", "success")] == 1
+    assert metrics.pipeline_records_total[("unknown", "accepted")] == 1
     stages = {item.stage for item in metrics.stage_durations}
     assert "extract" in stages
     assert "validate" in stages

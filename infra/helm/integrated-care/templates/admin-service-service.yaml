@@ -16,4 +16,7 @@ spec:
     - name: http
       port: {{ .Values.adminService.service.port }}
       targetPort: {{ .Values.adminService.service.targetPort }}
+      {{- if and (eq .Values.adminService.service.type "NodePort") .Values.adminService.service.nodePort }}
+      nodePort: {{ .Values.adminService.service.nodePort }}
+      {{- end }}
 {{- end }}

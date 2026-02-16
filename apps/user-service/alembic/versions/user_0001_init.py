@@ -10,7 +10,7 @@ from alembic import op
 
 revision = "user_0001"
 down_revision = None
-branch_labels = ("user",)
+branch_labels = None
 depends_on = None
 
 

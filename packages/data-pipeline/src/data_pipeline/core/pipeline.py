@@ -42,24 +42,49 @@ class ETLPipeline:
         self._quality_gate = quality_gate or FacilityQualityGate()
 
     async def run(self) -> int:
+        provider = str(getattr(self._extractor, "provider_name", "unknown"))
+        if self._metrics:
+            self._metrics.set_active_provider(provider)
         logger.info("etl_run_started", extra={"component": "data_pipeline"})
         total_started = perf_counter()
-        extracted = await self._time_async("extract", self._extractor.extract)
-        validated = [self._validate(item) for item in extracted]
-        normalized = [self._normalize(item) for item in validated]
-        quality_result = self._time_sync("quality", lambda: self._quality_gate.filter_or_raise(normalized))
-        if self._metrics:
-            self._metrics.add_quality_rejected_records(quality_result.rejected_count)
-        deduplicated = self._time_sync("deduplicate", lambda: list(self._deduplicate(quality_result.accepted)))
-        saved_count = await self._time_async("store", lambda: self._store.upsert_many(deduplicated))
-        self._observe("etl_total", (perf_counter() - total_started) * 1000.0)
-        if self._metrics:
-            self._metrics.add_processed_records(saved_count)
-        logger.info(
-            "etl_run_completed",
-            extra={"component": "data_pipeline", "saved_count": saved_count},
-        )
-        return saved_count
+        try:
+            extracted = await self._time_async("extract", self._extractor.extract)
+            validated = [self._validate(item) for item in extracted]
+            normalized = [self._normalize(item) for item in validated]
+            quality_result = self._time_sync("quality", lambda: self._quality_gate.filter_or_raise(normalized))
+            if self._metrics:
+                self._metrics.add_quality_rejected_records(quality_result.rejected_count)
+                self._metrics.set_reject_ratio(quality_result.reject_ratio)
+            if quality_result.rejected_samples:
+                logger.warning(
+                    "quality_rejected_samples",
+                    extra={
+                        "provider": provider,
+                        "reject_ratio": quality_result.reject_ratio,
+                        "samples": [
+                            {"source_id": sample.source_id, "reason": sample.reason}
+                            for sample in quality_result.rejected_samples
+                        ],
+                    },
+                )
+            deduplicated = self._time_sync("deduplicate", lambda: list(self._deduplicate(quality_result.accepted)))
+            saved_count = await self._time_async("store", lambda: self._store.upsert_many(deduplicated))
+            self._observe("etl_total", (perf_counter() - total_started) * 1000.0)
+            if self._metrics:
+                self._metrics.add_processed_records(saved_count)
+                self._metrics.increment_run(status="success")
+                self._metrics.observe_pipeline_duration((perf_counter() - total_started))
+            logger.info(
+                "etl_run_completed",
+                extra={"component": "data_pipeline", "saved_count": saved_count},
+            )
+            return saved_count
+        except Exception:
+            if self._metrics:
+                self._metrics.increment_run(status="failed")
+                self._metrics.observe_pipeline_duration((perf_counter() - total_started))
+                self._metrics.add_records("error", count=1)
+            raise
 
     def _validate(self, payload: dict) -> dict:
         started = perf_counter()

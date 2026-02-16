@@ -6,6 +6,7 @@ from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from typing import TypeVar
 
+from sqlalchemy import event
 from sqlalchemy import MetaData, text
 from sqlalchemy.exc import DBAPIError, OperationalError
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine as _create_async_engine
@@ -30,16 +31,37 @@ def load_database_url(default: str = "") -> str:
 
 
 def create_async_engine(dsn: str):
-    return _create_async_engine(
+    engine = _create_async_engine(
         normalize_postgres_dsn(dsn),
         future=True,
         pool_pre_ping=True,
         pool_recycle=1800,
     )
+    _install_kst_timezone_hook(engine)
+    return engine
+
+
+def _install_kst_timezone_hook(engine: AsyncEngine) -> None:
+    @event.listens_for(engine.sync_engine, "connect")
+    def _set_kst_timezone(dbapi_connection, connection_record) -> None:  # type: ignore[no-untyped-def]
+        del connection_record
+        cursor = dbapi_connection.cursor()
+        try:
+            cursor.execute("SET TIME ZONE 'Asia/Seoul'")
+        finally:
+            cursor.close()
 
 
 def create_session_factory(engine) -> async_sessionmaker[AsyncSession]:
     return async_sessionmaker(engine, expire_on_commit=False)
+
+
+def configure_alembic_connection(connection, *, schema_name: str) -> None:
+    connection.execute(text("SET TIME ZONE 'Asia/Seoul'"))
+    connection.execute(text("SET lock_timeout = '5s'"))
+    connection.execute(text("SET statement_timeout = '120s'"))
+    connection.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{schema_name}"'))
+    connection.commit()
 
 
 def is_transient_db_error(exc: Exception) -> bool:

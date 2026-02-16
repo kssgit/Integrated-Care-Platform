@@ -6,6 +6,9 @@ from typing import Any
 
 import httpx
 
+from data_pipeline.core.exceptions import ProviderNormalizationError, ProviderRequestError, ProviderTemporaryError
+from data_pipeline.core.metrics import InMemoryPipelineMetricsCollector
+from data_pipeline.core.retry import with_exponential_backoff
 from data_pipeline.core.pipeline import Extractor
 
 
@@ -42,24 +45,33 @@ class ProviderFacilityExtractor(Extractor[dict]):
     def __init__(
         self,
         base_url: str,
+        provider_name: str = "unknown",
         page_size: int = 200,
         start_page: int = 1,
         end_page: int = 1,
         endpoint_path: str = "/facilities",
-        timeout_seconds: float = 5.0,
+        connect_timeout_seconds: float = 2.0,
+        read_timeout_seconds: float = 5.0,
+        max_retries: int = 3,
+        retry_base_delay_seconds: float = 0.1,
+        metrics: InMemoryPipelineMetricsCollector | None = None,
         client_factory: Callable[[], httpx.AsyncClient] | None = None,
     ) -> None:
         self._base_url = base_url.rstrip("/")
+        self.provider_name = provider_name
         self._page_size = page_size
         self._start_page = start_page
         self._end_page = end_page
         self._endpoint_path = endpoint_path
-        self._timeout_seconds = timeout_seconds
+        self._timeout = httpx.Timeout(connect=connect_timeout_seconds, read=read_timeout_seconds, write=read_timeout_seconds, pool=connect_timeout_seconds)
+        self._max_retries = max_retries
+        self._retry_base_delay_seconds = retry_base_delay_seconds
+        self._metrics = metrics
         self._client_factory = client_factory
 
     async def extract(self) -> list[dict]:
         rows: list[dict] = []
-        factory = self._client_factory or (lambda: httpx.AsyncClient(timeout=self._timeout_seconds))
+        factory = self._client_factory or (lambda: httpx.AsyncClient(timeout=self._timeout))
         async with factory() as client:
             for page in range(self._start_page, self._end_page + 1):
                 batch = await self._fetch_page(client, page)
@@ -67,14 +79,61 @@ class ProviderFacilityExtractor(Extractor[dict]):
         return rows
 
     async def _fetch_page(self, client: httpx.AsyncClient, page: int) -> list[dict]:
-        response = await client.get(
-            f"{self._base_url}{self._endpoint_path}",
-            params={"page": page, "page_size": self._page_size},
+        async def _request_once() -> list[dict]:
+            try:
+                response = await client.get(
+                    f"{self._base_url}{self._endpoint_path}",
+                    params={"page": page, "page_size": self._page_size},
+                )
+            except httpx.TimeoutException as exc:
+                raise ProviderTemporaryError(f"provider timeout: page={page}") from exc
+            except httpx.HTTPError as exc:
+                raise ProviderRequestError(f"provider request error: page={page}") from exc
+
+            if response.status_code in {429} or response.status_code >= 500:
+                if self._metrics:
+                    self._metrics.increment_provider_http_error(code=response.status_code, provider=self.provider_name)
+                raise ProviderTemporaryError(
+                    f"provider temporary error: status={response.status_code}, page={page}"
+                )
+            if response.status_code >= 400:
+                if self._metrics:
+                    self._metrics.increment_provider_http_error(code=response.status_code, provider=self.provider_name)
+                raise ProviderRequestError(
+                    f"provider request rejected: status={response.status_code}, page={page}"
+                )
+
+            payload = response.json()
+            if not isinstance(payload, dict):
+                raise ProviderNormalizationError("provider payload is not a json object")
+            if "data" not in payload:
+                raise ProviderNormalizationError("provider payload missing field 'data'")
+            items = payload.get("data")
+            if not isinstance(items, list):
+                raise ProviderNormalizationError("provider payload missing list field 'data'")
+            normalized_items: list[dict] = []
+            for item in items:
+                if not isinstance(item, dict):
+                    raise ProviderNormalizationError("provider payload data item is not an object")
+                normalized_items.append(self._to_record(item))
+            return normalized_items
+
+        return await with_exponential_backoff(
+            _request_once,
+            retries=self._max_retries,
+            base_delay_seconds=self._retry_base_delay_seconds,
+            should_retry=lambda exc: self._is_retryable_error(exc),
+            on_retry=self._on_retry,
         )
-        response.raise_for_status()
-        payload = response.json()
-        items = payload.get("data", [])
-        return [self._to_record(item) for item in items]
+
+    def _is_retryable_error(self, exc: Exception) -> bool:
+        return isinstance(exc, ProviderTemporaryError)
+
+    def _on_retry(self, _: int, __: float) -> None:
+        if not self._metrics:
+            return
+        self._metrics.increment_external_api_error()
+        self._metrics.increment_provider_http_error(code="retry", provider=self.provider_name)
 
     def _to_record(self, item: dict) -> dict:
         source_id = _pick(item, "source_id", "id", "facility_id", "inst_id", "svc_id")
