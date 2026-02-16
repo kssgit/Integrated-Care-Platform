@@ -16,9 +16,10 @@ RUN pip install --upgrade pip \
     && pip install -r /app/requirements.txt
 
 COPY apps/search-service/src /app/apps/search-service/src
+COPY apps/search-service/alembic /app/apps/search-service/alembic
+COPY apps/search-service/alembic.ini /app/apps/search-service/alembic.ini
 COPY packages/shared/src /app/packages/shared/src
 
 USER appuser
 EXPOSE 8104
 CMD ["python", "-m", "search_service"]
-

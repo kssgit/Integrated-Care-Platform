@@ -16,9 +16,10 @@ RUN pip install --upgrade pip \
     && pip install -r /app/requirements.txt
 
 COPY apps/facility-service/src /app/apps/facility-service/src
+COPY apps/facility-service/alembic /app/apps/facility-service/alembic
+COPY apps/facility-service/alembic.ini /app/apps/facility-service/alembic.ini
 COPY packages/shared/src /app/packages/shared/src
 
 USER appuser
 EXPOSE 8103
 CMD ["python", "-m", "facility_service"]
-

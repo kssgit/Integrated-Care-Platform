@@ -246,6 +246,13 @@ kafkaTopicProvisioner:
     repository: bitnamilegacy/kafka
     tag: "3.9.0"
     pullPolicy: IfNotPresent
+  auth:
+    enabled: true
+    securityProtocol: SASL_PLAINTEXT
+    saslMechanism: PLAIN
+    username: user1
+    passwordSecretName: ""
+    passwordSecretKey: client-passwords
   topics:
     - name: etl-raw-events
       partitions: 3
@@ -318,6 +325,10 @@ etlCronJob:
 serviceMonitor:
   enabled: true
   interval: 15s
+
+migrations:
+  enabled: false
+  backoffLimit: 2
 
 ingress:
   enabled: false

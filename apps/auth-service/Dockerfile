@@ -16,9 +16,10 @@ RUN pip install --upgrade pip \
     && pip install -r /app/requirements.txt
 
 COPY apps/auth-service/src /app/apps/auth-service/src
+COPY apps/auth-service/alembic /app/apps/auth-service/alembic
+COPY apps/auth-service/alembic.ini /app/apps/auth-service/alembic.ini
 COPY packages/shared/src /app/packages/shared/src
 
 USER appuser
 EXPOSE 8101
 CMD ["python", "-m", "auth_service"]
-

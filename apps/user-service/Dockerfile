@@ -16,9 +16,10 @@ RUN pip install --upgrade pip \
     && pip install -r /app/requirements.txt
 
 COPY apps/user-service/src /app/apps/user-service/src
+COPY apps/user-service/alembic /app/apps/user-service/alembic
+COPY apps/user-service/alembic.ini /app/apps/user-service/alembic.ini
 COPY packages/shared/src /app/packages/shared/src
 
 USER appuser
 EXPOSE 8102
 CMD ["python", "-m", "user_service"]
-

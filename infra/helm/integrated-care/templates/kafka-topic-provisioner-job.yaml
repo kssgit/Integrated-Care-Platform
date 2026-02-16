@@ -38,9 +38,23 @@ spec:
             - |
               set -euo pipefail
               BOOTSTRAP="${KAFKA_BOOTSTRAP_SERVERS}"
+              CMD_CONFIG_OPT=""
+              if [ "${KAFKA_AUTH_ENABLED:-false}" = "true" ]; then
+                LOGIN_MODULE="org.apache.kafka.common.security.scram.ScramLoginModule"
+                if [ "${KAFKA_SASL_MECHANISM}" = "PLAIN" ]; then
+                  LOGIN_MODULE="org.apache.kafka.common.security.plain.PlainLoginModule"
+                fi
+                cat > /tmp/client.properties <<EOF
+              security.protocol=${KAFKA_SECURITY_PROTOCOL}
+              sasl.mechanism=${KAFKA_SASL_MECHANISM}
+              sasl.jaas.config=${LOGIN_MODULE} required username="${KAFKA_USERNAME}" password="${KAFKA_PASSWORD}";
+              EOF
+                CMD_CONFIG_OPT="--command-config /tmp/client.properties"
+              fi
               {{- range .Values.kafkaTopicProvisioner.topics }}
               kafka-topics.sh \
                 --bootstrap-server "${BOOTSTRAP}" \
+                ${CMD_CONFIG_OPT:-} \
                 --create \
                 --if-not-exists \
                 --topic "{{ .name }}" \
@@ -50,4 +64,17 @@ spec:
           env:
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: {{ include "integrated-care.kafkaBootstrapServers" . | quote }}
+            - name: KAFKA_AUTH_ENABLED
+              value: {{ .Values.kafkaTopicProvisioner.auth.enabled | quote }}
+            - name: KAFKA_SECURITY_PROTOCOL
+              value: {{ .Values.kafkaTopicProvisioner.auth.securityProtocol | quote }}
+            - name: KAFKA_SASL_MECHANISM
+              value: {{ .Values.kafkaTopicProvisioner.auth.saslMechanism | quote }}
+            - name: KAFKA_USERNAME
+              value: {{ .Values.kafkaTopicProvisioner.auth.username | quote }}
+            - name: KAFKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-kafka-user-passwords" .Release.Name) .Values.kafkaTopicProvisioner.auth.passwordSecretName }}
+                  key: {{ .Values.kafkaTopicProvisioner.auth.passwordSecretKey }}
 {{- end }}

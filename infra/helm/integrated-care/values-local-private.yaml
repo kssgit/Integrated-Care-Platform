@@ -4,7 +4,12 @@
 serviceMonitor:
   enabled: false
 
+migrations:
+  enabled: true
+
 dependencies:
+  postgresql:
+    enabled: true
   kubePrometheusStack:
     enabled: false
   airflow:
@@ -20,10 +25,13 @@ apiEventParkingMonitorWorker:
 etlCronJob:
   enabled: false
 
+kafkaTopicProvisioner:
+  enabled: true
+
 secret:
-  JWT_SECRET_KEY: ""
-  ENCRYPTION_MASTER_KEY: ""
-  INTERNAL_EVENT_HMAC_SECRET: ""
+  JWT_SECRET_KEY: "local-dev-jwt-secret-change-me-2026"
+  ENCRYPTION_MASTER_KEY: "local-dev-encryption-key-change-me-2026"
+  INTERNAL_EVENT_HMAC_SECRET: "local-dev-hmac-secret-change-me-2026"
   FACILITY_PROVIDER_BASE_URL: "https://provider.example.com"
 
 api:
@@ -33,19 +41,19 @@ api:
 authService:
   image:
     repository: erric22/integrated-care-auth-service
-    tag: "local-20260216-d386fdf"
+    tag: "local-20260216-alembic4"
 userService:
   image:
     repository: erric22/integrated-care-user-service
-    tag: "local-20260216-d386fdf"
+    tag: "local-20260216-alembic4"
 facilityService:
   image:
     repository: erric22/integrated-care-facility-service
-    tag: "local-20260216-d386fdf"
+    tag: "local-20260216-alembic4"
 searchService:
   image:
     repository: erric22/integrated-care-search-service
-    tag: "local-20260216-d386fdf"
+    tag: "local-20260216-alembic4"
 apiEventConsumer:
   image:
     repository: erric22/integrated-care-api-event-consumer
