@@ -1,5 +1,8 @@
-﻿imagePullSecrets:
+imagePullSecrets:
   - name: dockerhub-pull
+
+global:
+  storageClass: jonathan-system-sc
 
 serviceMonitor:
   enabled: false
@@ -36,7 +39,7 @@ secret:
 
 api:
   image:
-    repository: erric22/integrated-care-api
+    repository: registry.jonathan.acryl.ai/wyatt/integrated-care-api
     tag: "local-20260216-d386fdf"
 authService:
   image:
@@ -56,21 +59,48 @@ searchService:
     tag: "local-20260216-alembic4"
 apiEventConsumer:
   image:
-    repository: erric22/integrated-care-api-event-consumer
+    repository: registry.jonathan.acryl.ai/wyatt/integrated-care-api-event-consumer
     tag: "local-20260216-d386fdf"
 apiEventDlqRetryWorker:
   image:
-    repository: erric22/integrated-care-api-event-dlq-retry
+    repository: registry.jonathan.acryl.ai/wyatt/integrated-care-api-event-dlq-retry
     tag: "local-20260216-d386fdf"
 apiEventParkingMonitorWorker:
   image:
-    repository: erric22/integrated-care-api-event-parking-monitor
+    repository: registry.jonathan.acryl.ai/wyatt/integrated-care-api-event-parking-monitor
     tag: "local-20260216-d386fdf"
 etlCronJob:
   image:
-    repository: erric22/integrated-care-pipeline-etl
+    repository: registry.jonathan.acryl.ai/wyatt/integrated-care-pipeline-etl
     tag: "local-20260216-d386fdf"
 pipelineMonitoring:
   image:
-    repository: erric22/integrated-care-pipeline-monitoring
+    repository: registry.jonathan.acryl.ai/wyatt/integrated-care-pipeline-monitoring
     tag: "local-20260216-d386fdf"
+
+postgresql:
+  primary:
+    persistence:
+      storageClass: jonathan-system-sc
+    service:
+      type: NodePort
+      nodePorts:
+        postgresql: "30432"
+
+redis:
+  master:
+    persistence:
+      storageClass: jonathan-system-sc
+  replica:
+    persistence:
+      storageClass: jonathan-system-sc
+
+kafka:
+  persistence:
+    storageClass: jonathan-system-sc
+  controller:
+    persistence:
+      storageClass: jonathan-system-sc
+  broker:
+    persistence:
+      storageClass: jonathan-system-sc

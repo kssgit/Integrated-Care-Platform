@@ -44,6 +44,24 @@ dependencies:
     enabled: false
 ```
 
+## StorageClass Override
+
+Set storage class for dependency PVCs:
+
+```yaml
+global:
+  storageClass: "jonathan-system-sc"
+```
+
+You can also override per dependency:
+
+1. `postgresql.primary.persistence.storageClass`
+2. `redis.master.persistence.storageClass`
+3. `redis.replica.persistence.storageClass`
+4. `kafka.persistence.storageClass`
+5. `kafka.controller.persistence.storageClass`
+6. `kafka.broker.persistence.storageClass`
+
 ## PostgreSQL Auto Wiring
 
 If:

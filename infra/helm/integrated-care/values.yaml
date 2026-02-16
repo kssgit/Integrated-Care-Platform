@@ -2,6 +2,7 @@ global:
   nameOverride: ""
   fullnameOverride: ""
   namespace: integrated-care
+  storageClass: ""
   security:
     allowInsecureImages: true
 
@@ -358,6 +359,13 @@ dependencies:
 postgresql:
   image:
     repository: bitnamilegacy/postgresql
+  primary:
+    persistence:
+      storageClass: ""
+    service:
+      type: ClusterIP
+      nodePorts:
+        postgresql: ""
   auth:
     username: postgres
     password: postgres
@@ -366,10 +374,24 @@ postgresql:
 redis:
   image:
     repository: bitnamilegacy/redis
+  master:
+    persistence:
+      storageClass: ""
+  replica:
+    persistence:
+      storageClass: ""
 
 kafka:
   image:
     repository: bitnamilegacy/kafka
+  persistence:
+    storageClass: ""
+  controller:
+    persistence:
+      storageClass: ""
+  broker:
+    persistence:
+      storageClass: ""
   provisioning:
     image:
       repository: bitnamilegacy/kafka
