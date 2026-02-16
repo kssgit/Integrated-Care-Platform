@@ -1,0 +1,44 @@
+{{- if .Values.dependencies.airflow.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-airflow-admin-dags
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "integrated-care.labels" . | nindent 4 }}
+data:
+  admin_pipeline_dag.py: |
+    from __future__ import annotations
+
+    from airflow import DAG
+    from airflow.operators.python import PythonOperator
+    from datetime import datetime
+
+
+    def run_admin_pipeline(**context):
+        dag_run = context.get("dag_run")
+        conf = dag_run.conf if dag_run else {}
+        provider_name = conf.get("provider_name", "seoul_open_data")
+        start_page = int(conf.get("start_page", 1))
+        end_page = int(conf.get("end_page", 1))
+        dry_run = bool(conf.get("dry_run", False))
+        print(
+            f"admin pipeline run: provider={provider_name} start_page={start_page} "
+            f"end_page={end_page} dry_run={dry_run}"
+        )
+
+
+    dag = DAG(
+        dag_id="seoul_care_plus_daily_sync",
+        start_date=datetime(2026, 1, 1),
+        schedule="@daily",
+        catchup=False,
+        tags=["admin", "pipeline"],
+    )
+
+    PythonOperator(
+        task_id="run_admin_pipeline",
+        python_callable=run_admin_pipeline,
+        dag=dag,
+    )
+{{- end }}

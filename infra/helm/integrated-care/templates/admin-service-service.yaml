@@ -1,0 +1,19 @@
+{{- if .Values.adminService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "integrated-care.fullname" . }}-admin-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "integrated-care.labels" . | nindent 4 }}
+    app: admin-service
+spec:
+  type: {{ .Values.adminService.service.type }}
+  selector:
+    app: admin-service
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: http
+      port: {{ .Values.adminService.service.port }}
+      targetPort: {{ .Values.adminService.service.targetPort }}
+{{- end }}

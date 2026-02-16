@@ -9,12 +9,13 @@ Deploy:
 3. User service
 4. Facility service
 5. Search service
-6. Data pipeline monitoring service
-7. ETL CronJob worker
-8. API event consumer worker (optional)
-9. API event DLQ retry worker (optional)
-10. API event parking monitor worker (optional)
-11. Kafka topic provisioner hook job (optional, recommended)
+6. Admin service
+7. Data pipeline monitoring service
+8. ETL CronJob worker
+9. API event consumer worker (optional)
+10. API event DLQ retry worker (optional)
+11. API event parking monitor worker (optional)
+12. Kafka topic provisioner hook job (optional, recommended)
 
 and optionally pull open-source platform dependencies through Helm dependency management.
 
@@ -61,6 +62,12 @@ You can also override per dependency:
 4. `kafka.persistence.storageClass`
 5. `kafka.controller.persistence.storageClass`
 6. `kafka.broker.persistence.storageClass`
+7. `airflow.workers.persistence.storageClassName`
+8. `airflow.triggerer.persistence.storageClassName`
+9. `airflow.logs.persistence.storageClassName`
+10. `airflow.dags.persistence.storageClassName`
+11. `airflow.redis.persistence.storageClassName`
+12. `airflow.postgresql.primary.persistence.storageClass`
 
 ## PostgreSQL Auto Wiring
 
@@ -155,6 +162,7 @@ helm upgrade --install integrated-care infra/helm/integrated-care \
   --set apiEventConsumer.image.tag=<TAG> \
   --set apiEventDlqRetryWorker.image.tag=<TAG> \
   --set apiEventParkingMonitorWorker.image.tag=<TAG> \
+  --set adminService.image.tag=<TAG> \
   --set etlCronJob.image.tag=<TAG> \
   --set pipelineMonitoring.image.tag=<TAG>
 ```
@@ -169,6 +177,7 @@ docker build -f apps/auth-service/Dockerfile -t <REGISTRY>/integrated-care-auth-
 docker build -f apps/user-service/Dockerfile -t <REGISTRY>/integrated-care-user-service:<TAG> .
 docker build -f apps/facility-service/Dockerfile -t <REGISTRY>/integrated-care-facility-service:<TAG> .
 docker build -f apps/search-service/Dockerfile -t <REGISTRY>/integrated-care-search-service:<TAG> .
+docker build -f apps/admin-service/Dockerfile -t <REGISTRY>/integrated-care-admin-service:<TAG> .
 docker build -f apps/api/Dockerfile.event-consumer -t <REGISTRY>/integrated-care-api-event-consumer:<TAG> .
 docker build -f apps/api/Dockerfile.event-dlq-retry -t <REGISTRY>/integrated-care-api-event-dlq-retry:<TAG> .
 docker build -f apps/api/Dockerfile.event-parking-monitor -t <REGISTRY>/integrated-care-api-event-parking-monitor:<TAG> .

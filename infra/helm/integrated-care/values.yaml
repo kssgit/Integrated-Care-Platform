@@ -81,6 +81,8 @@ config:
   FACILITY_SERVICE_PORT: "8103"
   SEARCH_SERVICE_HOST: "0.0.0.0"
   SEARCH_SERVICE_PORT: "8104"
+  ADMIN_SERVICE_HOST: "0.0.0.0"
+  ADMIN_SERVICE_PORT: "8105"
 
 secret:
   create: true
@@ -92,6 +94,10 @@ secret:
   JWT_SECRET_KEY: "change-me"
   ENCRYPTION_MASTER_KEY: "change-me"
   INTERNAL_EVENT_HMAC_SECRET: ""
+  AIRFLOW_API_BASE_URL: ""
+  AIRFLOW_API_USERNAME: ""
+  AIRFLOW_API_PASSWORD: ""
+  AIRFLOW_DAG_ID: "seoul_care_plus_daily_sync"
 
 api:
   enabled: true
@@ -188,6 +194,25 @@ searchService:
     type: ClusterIP
     port: 8104
     targetPort: 8104
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+adminService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/example/integrated-care-admin-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8105
+    targetPort: 8105
   resources:
     requests:
       cpu: "100m"
@@ -360,7 +385,25 @@ airflow:
   images:
     redis:
       repository: bitnamilegacy/redis
+  workers:
+    persistence:
+      storageClassName: ""
+  triggerer:
+    persistence:
+      storageClassName: ""
+  logs:
+    persistence:
+      storageClassName: ""
+  dags:
+    persistence:
+      storageClassName: ""
+  redis:
+    persistence:
+      storageClassName: ""
   postgresql:
+    primary:
+      persistence:
+        storageClass: ""
     image:
       registry: docker.io
       repository: bitnamilegacy/postgresql

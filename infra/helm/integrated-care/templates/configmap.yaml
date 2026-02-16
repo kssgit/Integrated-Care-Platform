@@ -40,3 +40,5 @@ data:
   FACILITY_SERVICE_PORT: {{ .Values.config.FACILITY_SERVICE_PORT | quote }}
   SEARCH_SERVICE_HOST: {{ .Values.config.SEARCH_SERVICE_HOST | quote }}
   SEARCH_SERVICE_PORT: {{ .Values.config.SEARCH_SERVICE_PORT | quote }}
+  ADMIN_SERVICE_HOST: {{ .Values.config.ADMIN_SERVICE_HOST | quote }}
+  ADMIN_SERVICE_PORT: {{ .Values.config.ADMIN_SERVICE_PORT | quote }}

@@ -84,6 +84,11 @@ searchService:
     repository: myacr.azurecr.io/integrated-care-search-service
     tag: latest
 
+adminService:
+  image:
+    repository: myacr.azurecr.io/integrated-care-admin-service
+    tag: latest
+
 apiEventConsumer:
   enabled: true
   image:
@@ -179,6 +184,10 @@ secret:
   JWT_SECRET_KEY: ""
   ENCRYPTION_MASTER_KEY: ""
   INTERNAL_EVENT_HMAC_SECRET: ""
+  AIRFLOW_API_BASE_URL: ""
+  AIRFLOW_API_USERNAME: ""
+  AIRFLOW_API_PASSWORD: ""
+  AIRFLOW_DAG_ID: "seoul_care_plus_daily_sync"
 
 serviceMonitor:
   enabled: true
@@ -204,7 +213,25 @@ airflow:
   images:
     redis:
       repository: bitnamilegacy/redis
+  workers:
+    persistence:
+      storageClassName: ""
+  triggerer:
+    persistence:
+      storageClassName: ""
+  logs:
+    persistence:
+      storageClassName: ""
+  dags:
+    persistence:
+      storageClassName: ""
+  redis:
+    persistence:
+      storageClassName: ""
   postgresql:
+    primary:
+      persistence:
+        storageClass: ""
     image:
       registry: docker.io
       repository: bitnamilegacy/postgresql

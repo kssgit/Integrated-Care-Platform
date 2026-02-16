@@ -16,16 +16,55 @@ dependencies:
   kubePrometheusStack:
     enabled: false
   airflow:
-    enabled: false
+    enabled: true
 
 airflow:
+  config:
+    api:
+      auth_backends: airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session
+  data:
+    metadataSecretName: integrated-care-airflow-shared-metadata
+    brokerUrlSecretName: integrated-care-airflow-shared-broker-url
   images:
     redis:
       repository: bitnamilegacy/redis
+      tag: 7.4.2-debian-12-r0
+  scheduler:
+    extraVolumes:
+      - name: admin-pipeline-dag
+        configMap:
+          name: integrated-care-airflow-admin-dags
+    extraVolumeMounts:
+      - name: admin-pipeline-dag
+        mountPath: /opt/airflow/dags/admin_pipeline_dag.py
+        subPath: admin_pipeline_dag.py
+        readOnly: true
+  webserver:
+    extraVolumes:
+      - name: admin-pipeline-dag
+        configMap:
+          name: integrated-care-airflow-admin-dags
+    extraVolumeMounts:
+      - name: admin-pipeline-dag
+        mountPath: /opt/airflow/dags/admin_pipeline_dag.py
+        subPath: admin_pipeline_dag.py
+        readOnly: true
+  workers:
+    persistence:
+      storageClassName: jonathan-system-sc
+  triggerer:
+    persistence:
+      storageClassName: jonathan-system-sc
+  logs:
+    persistence:
+      storageClassName: jonathan-system-sc
+  dags:
+    persistence:
+      storageClassName: jonathan-system-sc
+  redis:
+    enabled: false
   postgresql:
-    image:
-      registry: docker.io
-      repository: bitnamilegacy/postgresql
+    enabled: false
 
 apiEventConsumer:
   enabled: true
@@ -45,6 +84,10 @@ secret:
   ENCRYPTION_MASTER_KEY: "local-dev-encryption-key-change-me-2026"
   INTERNAL_EVENT_HMAC_SECRET: "local-dev-hmac-secret-change-me-2026"
   FACILITY_PROVIDER_BASE_URL: "https://provider.example.com"
+  AIRFLOW_API_BASE_URL: "http://integrated-care-webserver:8080"
+  AIRFLOW_API_USERNAME: "admin"
+  AIRFLOW_API_PASSWORD: "admin"
+  AIRFLOW_DAG_ID: "seoul_care_plus_daily_sync"
 
 api:
   image:
@@ -66,6 +109,10 @@ searchService:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-search-service
     tag: "local-20260216-probe01"
+adminService:
+  image:
+    repository: registry.jonathan.acryl.ai/wyatt/integrated-care-admin-service
+    tag: "local-20260216-admin02"
 apiEventConsumer:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-api-event-consumer
@@ -81,7 +128,7 @@ apiEventParkingMonitorWorker:
 etlCronJob:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-pipeline-etl
-    tag: "local-20260216-d386fdf"
+    tag: "local-20260216-pipeline02"
 pipelineMonitoring:
   image:
     repository: registry.jonathan.acryl.ai/wyatt/integrated-care-pipeline-monitoring
